@@ -29,8 +29,31 @@ dl = pd.read_csv(ROOT / "outputs" / "earthcare" / "download_list.csv")
 if "--all" not in sys.argv:
     dl = dl[dl.priority.str.startswith("1")]
 
+def access_token(token):
+    """MAAP portal tokens are usually OFFLINE tokens (~90 days): exchange them for a short-lived access token at the
+    issuer's endpoint (Keycloak refresh grant). Needs the public client secret shown on the MAAP token page
+    (ESA_MAAP_CLIENT_SECRET in .env). An access token is used as is."""
+    import base64
+    import json
+    try:
+        payload = json.loads(base64.urlsafe_b64decode(token.split(".")[1] + "=" * (-len(token.split(".")[1]) % 4)))
+    except Exception:
+        return token
+    if payload.get("typ") != "Offline":
+        return token
+    secret = os.environ.get("ESA_MAAP_CLIENT_SECRET")
+    if not secret:
+        sys.exit("ESA_MAAP_TOKEN is an offline token: add ESA_MAAP_CLIENT_SECRET (shown on the MAAP token page) to .env")
+    r = requests.post(payload["iss"] + "/protocol/openid-connect/token", timeout=60,
+                      data={"grant_type": "refresh_token", "refresh_token": token, "client_id": payload.get("azp", "offline-token"),
+                            "client_secret": secret, "scope": "offline_access openid"})
+    if r.status_code != 200:
+        sys.exit(f"Token exchange refused (HTTP {r.status_code}: {r.json().get('error', '')}). Check the client secret or generate a new token.")
+    return r.json()["access_token"]
+
+
 s = requests.Session()
-s.headers["Authorization"] = f"Bearer {TOKEN}"
+s.headers["Authorization"] = f"Bearer {access_token(TOKEN)}"
 for r in dl.itertuples():
     dest = OUT / (r.file + ".h5")
     if dest.exists():
