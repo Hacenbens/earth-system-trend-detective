@@ -1,0 +1,31 @@
+test,variable,n,pct_per_decade,mk_p,sen_ci
+East baseline (10-20E),total,28,8.74,0.0553,-0.192..4.661
+East without 2024,total,27,5.92,0.1334,-0.864..3.823
+East without 2024 and 2020,total,26,4.71,0.2517,-1.140..3.406
+East ending 2023,total,26,5.2,0.2011,-1.133..3.907
+East leave-one-year-out (range),total,27,5.92..9.94,0.0218..0.1334,worst p when dropping 2024
+East border at 8E (8-20E),total,28,5.64,0.1492,-0.761..3.983
+East border at 9E (9-20E),total,28,7.07,0.0931,-0.585..4.522
+East border at 11E (11-20E),total,28,8.84,0.0605,-0.144..4.708
+East border at 12E (12-20E),total,28,8.14,0.0605,-0.049..4.775
+"East, south part 10-15N",total,28,5.55,0.1607,-1.124..7.339
+"East, north part 15-20N",total,28,23.71,0.0013,0.560..2.307
+"East, Lake Chad masked",total,28,7.7,0.0787,-0.312..4.601
+"% anomaly, equal cell weight, East",total,28,14.94,0.006,0.595..2.705
+Whole box baseline,total,28,3.21,0.1607,-0.623..3.149
+"% anomaly, equal cell weight, whole box",total,28,6.35,0.1186,-0.134..1.231
+East baseline (10-20E),cdd,28,-9.57,0.0013,-0.429..-0.143
+East without 2024,cdd,27,-8.53,0.004,-0.412..-0.089
+East without 2024 and 2020,cdd,26,-8.89,0.0042,-0.420..-0.095
+East ending 2023,cdd,26,-9.4,0.0042,-0.444..-0.095
+East leave-one-year-out (range),cdd,27,-10.65..-8.53,0.0005..0.0040,worst p when dropping 2024
+East border at 8E (8-20E),cdd,28,-9.93,0.0019,-0.410..-0.122
+East border at 9E (9-20E),cdd,28,-9.59,0.0011,-0.428..-0.127
+East border at 11E (11-20E),cdd,28,-9.57,0.0029,-0.440..-0.118
+East border at 12E (12-20E),cdd,28,-9.93,0.0029,-0.453..-0.105
+"East, south part 10-15N",cdd,28,-7.33,0.0662,-0.201..0.005
+"East, north part 15-20N",cdd,28,-10.31,0.0017,-0.737..-0.191
+"East, Lake Chad masked",cdd,28,-10.01,0.0017,-0.458..-0.132
+"% anomaly, equal cell weight, East",cdd,28,-8.43,0.0017,-1.329..-0.357
+Whole box baseline,cdd,28,-5.16,0.0722,-0.213..0.009
+"% anomaly, equal cell weight, whole box",cdd,28,-3.16,0.2281,-0.790..0.177
