@@ -83,6 +83,12 @@ Never edit an accepted decision. Supersede it with a new entry.
 - **Decision:** CHIRPS v3.0 (UCSB Climate Hazards Center, 0.05°, gauge-blended, released 2025-01) is used only as an independent check on IMERG, never as the trend dataset (D-002 stands). The first use is to check the 2026 Late Run dry signal (evidence ledger E-004).
 - **Why:** The `.docx` pack proposed CHIRPS as the primary dataset; that would break D-002. As a cross-check it adds *Validity*, and it covers 2026, which IMERG Final does not.
 
+
+## D-014 — Analysis pipeline and methods
+- **Status:** ACCEPTED · 2026-11-14 (team lead). Full mapping in `docs/research/methods_pipeline.md`.
+- **Decision:** Six-layer toolchain (acquisition, processing, geospatial, statistics, visualisation, reproducibility) and four method groups: A descriptive indicators, B trend detection (autocorrelation-aware MK + Sen + change points), C spatial analysis (sub-regions, pixel trends with FDR correction, CHIRPS vs GPM), D atmospheric relationships (association, not causation). Plus E: the NDVI add-on (D-011).
+- **Adjustments for consistency with earlier decisions:** a 1981–2025 record is used as context only (CHIRPS / GPCP), and the NASA trend period stays 1998–2025 (D-002, D-006). Dask, Zarr, Rasterio and MLflow are not needed at our data size (~230 MB) and are left out unless a need appears.
+
 ---
 
 ## Open questions (need answers from the team)
