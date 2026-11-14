@@ -1,0 +1,3 @@
+This project makes an impact by addressing either a minor or major problem, which influences the quality and quantity of its overall effect. The extent to which it inspires or helps others varies, ranging from a broad audience to a select few.
+
+Score of 5 (Outstanding Impact): This project demonstrates exceptional impact, addressing a significant problem with proposed solutions. Its reach is extensive, inspiring, benefits a large audience, or could change the world. The quality and effectiveness of the project far exceeds expectations, setting a high standard for others.

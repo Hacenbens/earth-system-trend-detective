@@ -1,0 +1,14 @@
+data/raw/*
+data/processed/*
+!data/**/.gitkeep
+*.nc
+*.nc4
+*.h5
+*.HDF5
+.netrc
+.env
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+*.tif
+*.tiff

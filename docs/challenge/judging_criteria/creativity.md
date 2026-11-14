@@ -1,0 +1,3 @@
+This project demonstrates originality and innovation. It introduces a novel concept that has not been attempted before or presents an improvement upon existing ideas in a meaningful way. This project is distinguished by its level of creativity, showcasing a fresh perspective or inventive execution.
+
+Score of 5 (Highly Creative and Innovative): This project showcases remarkable creativity, introducing a groundbreaking approach that has never been attempted before. It challenges conventional methods, presenting an original and inventive proposed solution that stands out in its field. The uniqueness of the idea makes it a true innovation.

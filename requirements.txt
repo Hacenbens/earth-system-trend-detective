@@ -1,0 +1,15 @@
+# Core scientific stack: Earth System Trend Detective
+xarray
+netCDF4
+h5netcdf
+h5py
+pandas
+numpy
+scipy
+statsmodels
+pymannkendall
+earthaccess
+matplotlib
+plotly
+jupyterlab
+ipykernel

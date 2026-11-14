@@ -1,0 +1,14 @@
+# Super Intelligence (AI) usage log — required by Space Apps policy
+
+Record every SI-assisted artefact as it is created. SI images and videos need a visible watermark. SI code and data need a note in the descriptive text **and** in metadata (file header / docstring).
+SI-generated content must never include NASA logos, flags or mission identifiers.
+
+| Date | Artefact (file / slide / figure) | Tool | How SI was used | Human review / edits | Watermark / metadata done? |
+|---|---|---|---|---|---|
+| 2026-11-13 | docs/ workspace structure, decision log, inventory templates | Claude Code (Anthropic) | Drafted documentation structure from team's research plan | Team to review | n/a (docs) |
+| 2026-11-13 | docs/team/Team_Briefing_v0.1.pdf + build_briefing.py | Claude Code (Anthropic) | Drafted and typeset the team briefing PDF from the research plan and decision log | Team to review | AI note in PDF footer + metadata; script docstring |
+| 2026-11-13 | docs/research/dataset_inventory.md (verification), scripts/fetch_sample_imerg.py, requirements.txt | Claude Code (Anthropic) | Queried NASA CMR to verify datasets; wrote the sample-download script | Team to review | AI note in script docstring |
+| 2026-11-13 | data/raw/imerg_monthly sample + inventory sample-check section | Claude Code (Anthropic) | Ran the download and inspection script and summarised the results | Team to review | n/a (docs) |
+| 2026-11-14 | Giovanni cross-check; scripts/fetch_sahel_series.py; data/processed/sahel_imerg_*.csv; inventory + ledger E-004 rows | Claude Code (Anthropic) | Drove Giovanni in the browser for a cross-check; wrote and ran the OPeNDAP box-subset script; summarised results | Team to review | AI note in script docstring |
+| 2026-11-14 | Review of docs/team/contribution/; DECISIONS.md D-011..D-013; literature.md L-11..L-39; scripts/fetch_chirps_sahel.py | Claude Code (Anthropic) | Summarised teammate contributions and flagged conflicts; recorded team-lead decisions; transcribed references (TO-VERIFY); wrote CHIRPS cross-check script | Team lead decided D-011..D-013; papers still to be read | AI note in script docstring |
+| 2026-11-14 | Teammate contribution files in docs/team/contribution/ | To confirm with each teammate (several look AI-assisted: Consensus, chat assistant) | Literature search / summaries | Teammates to fill in | TO-CONFIRM |
