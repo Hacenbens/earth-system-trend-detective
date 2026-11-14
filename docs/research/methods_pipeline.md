@@ -92,7 +92,8 @@ Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ d
 ### Layer 2: vertical structure with EarthCARE (ESA–JAXA; CPR by JAXA/NICT, ATLID by ESA). D-010 core, highest risk
 | ID | Task | Status | Owner | Depends on | Estimate |
 |---|---|---|---|---|---|
-| T-01 | Candidate overpass list: heavy-rain days JJAS 2024–2025 in the box (IMERG daily, on disk) matched to EarthCARE ground tracks | ⬜ | Claude | – | 10–30 min |
+| T-01 | Candidate overpass list: heavy-rain days JJAS 2024–2025 in the box (IMERG daily, on disk) matched to EarthCARE ground tracks | ✅ 673 passes, 345 cross ≥ 20 mm/day rain, 26 strong cases with lidar + synergy products (`outputs/earthcare/overpass_candidates_2024_2025.csv`, `scripts/earthcare_candidates.py`) | Claude | – | done |
+| T-01b | Confirm the shortlisted cases with IMERG **half-hourly** rain at the overpass time (daily totals can miss timing), and add one dusty pre-monsoon case (June 2025) for the dust card | ⬜ | Claude | T-01 | 20 min |
 | T-02 | Confirm EarthCARE data access (ESA account the team holds, or JAXA G-Portal) and the exact level-2 product names: CPR reflectivity + Doppler, ATLID aerosol layers/extinction, combined target classification | ⬜ | Team (account holder) | – | 30 min |
 | T-03 | Download 3–5 overpasses (Sahel segment only) | ⬜ | Team / Claude | T-01, T-02 | 30–60 min |
 | T-04 | Height-vs-distance cross-sections (CPR reflectivity, Doppler velocity, ATLID dust layer vs cloud); add results to cards M-03 and M-04. Case studies only, never a trend (D-002) | ⬜ | Claude | T-03 | 1–2 h |
