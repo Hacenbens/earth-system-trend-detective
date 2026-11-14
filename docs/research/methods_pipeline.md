@@ -28,7 +28,7 @@ Rule: every script writes a provenance note (dataset, version, box, period) in i
 | Mean, median, standard deviation | ✅ | `trend.trend_summary` (mean); JJAS sd = 37 mm (CHIRPS) |
 | Anomalies vs a reference climatology | ✅ (CHIRPS 1998–2025) ⬜ (IMERG, in app) | `docs/research/evidence_ledger.md` E-004 |
 | Seasonal decomposition (STL, statsmodels) | ⬜ | on the monthly IMERG series 1998–2025 (`data/processed/sahel_imerg_final_monthly_1998_2025.csv`) |
-| Rainfall indices (intensity, frequency, duration): PRCPTOT, wet days, SDII, Rx1day, Rx5day, R10mm, R20mm, CDD, R95p, R95pTOT | 🟡 code done, daily data downloading | `src/earth_detective/extremes.py`, `scripts/analyze_extremes.py` |
+| Rainfall indices (intensity, frequency, duration): PRCPTOT, wet days, SDII, Rx1day, Rx5day, R10mm, R20mm, CDD, R95p, R95pTOT | ✅ computed (E-006); 🟡 daily gauge-based check pending | `src/earth_detective/extremes.py`, `scripts/analyze_extremes.py` |
 | Moving averages (e.g. 5-yr) | ⬜ | figures + app |
 | **Long record from 1981** | ⬜ as **context only** | CHIRPS v3 (1981–) and GPCP V3.3 (1983–) put 1998–2025 in perspective (drought-recovery cycle). The NASA trend period stays 1998–2025 (D-002, D-006) |
 
@@ -70,7 +70,7 @@ JJAS rainfall anomaly vs growing-season NDVI anomaly (MODIS MOD13, AppEEARS), wi
 ## 3. Pipeline order (what runs after what)
 1. ✅ Acquisition and validation (Giovanni, CHIRPS cross-checks)
 2. ✅ H1 seasonal totals: trend + sensitivity + 2014 check (E-005)
-3. 🟡 H2 extremes (daily indices) → trends → compare with Spät et al. 2025 (L-11)
+3. 🟡 H2 extremes: indices + trends done (E-006). Pending: daily cross-check with CHIRPS daily / GHCN gauges because the IMERG daily tail is not homogeneous across 2014
 4. ⬜ Spatial: sub-regions + pixel trend maps with FDR
 5. ⬜ Layers 2–3: MERRA-2 moisture / OMEGA, EarthCARE case studies, evidence cards
 6. ⬜ NDVI add-on
@@ -78,4 +78,5 @@ JJAS rainfall anomaly vs growing-season NDVI anomaly (MODIS MOD13, AppEEARS), wi
 
 ## 4. Data-quality notes found so far
 - IMERG Late Run is not trend-quality (E-004: 20-point swing vs CHIRPS in 2026).
-- **Daily IMERG Final 1999–2000 has single-cell maxima of 561 and 640 mm/day** (2001–2003: 297–455). This must be checked before trusting Rx1day trends: TRMM-era outliers could create an artificial downward trend in the maxima. Check: how many cells/days, is it isolated pixels, compare with CHIRPS daily.
+- Daily IMERG Final single-cell maxima of 561 and 640 mm/day (1999, 2000) are spatially coherent storms (0 isolated pixels), not glitches, and are too few to move box means.
+- **But the daily tail is not homogeneous across 2014**: the wet-day 99.9th percentile is 112 mm/day in 1998–2013 vs 103 in 2014–2025, the share of light wet days (< 2 mm) falls steadily, and SDII steps up at 2014. Extreme-index trends from IMERG alone are therefore TO-VERIFY (E-006) until a daily gauge-based check.
