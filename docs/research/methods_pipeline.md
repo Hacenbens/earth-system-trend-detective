@@ -35,7 +35,8 @@ Rule: every script writes a provenance note (dataset, version, box, period) in i
 ### B. Statistical trend detection: *core of H1/H2*
 | Method | Status | Where / note |
 |---|---|---|
-| Linear regression (OLS slope + CI) | ⬜ | add to `trend_summary` as a reference alongside Sen |
+| Linear regression (OLS slope + CI) | ✅ | `trend_summary` (`ols_*`) |
+| **Trend with AR(1) errors** (ARIMA(1,0,0) + time regressor, statsmodels) | ✅ | `trend_summary` (`ar1_*`). Answers "why not ARIMA?". **Slopes agree with Sen and OLS within ~0.1 mm/yr for every series.** Rule: AR(1) confirms the slope, while significance is taken from MK (or OLS when the AR coefficient is not significant). With our negative, non-significant AR coefficients (e.g. −0.41, p = 0.10 for JJAS totals), AR(1) p-values are anti-conservative (0.023 vs MK 0.161) |
 | Mann–Kendall | ✅ | `trend.py` |
 | **Autocorrelation check + adjusted MK** | ✅ | lag-1 autocorrelation reported; Hamed–Rao (floored at 1) and Yue–Wang TFPW. Negative autocorrelation found (−0.42), so the original MK is the conservative choice |
 | Sen's slope + 95 % CI | ✅ | `scipy.stats.theilslopes` |

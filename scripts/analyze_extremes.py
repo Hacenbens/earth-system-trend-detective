@@ -53,6 +53,10 @@ print("\n=== JJAS extreme-index trends 1998-2025 (slope per year) ===")
 print(tr[["units", "mean", "sen_slope", "slope_ci_low", "slope_ci_high", "slope_pct_per_decade", "mk_p",
           "mk_hamed_rao_p", "mk_yue_wang_p", "lag1_autocorr", "significant_all_tests"]].to_string(float_format=lambda v: f"{v:.3f}"))
 
+# method comparison: non-parametric (MK + Sen) vs parametric (OLS, trend with AR(1) errors = ARIMA(1,0,0) + time)
+print("\n=== method comparison (slope per year; p) ===")
+print(tr[["sen_slope", "mk_p", "ols_slope", "ols_p", "ar1_slope", "ar1_slope_ci_low", "ar1_slope_ci_high", "ar1_p",
+          "ar1_phi", "ar1_phi_p"]].to_string(float_format=lambda v: f"{v:.3f}"))
 # start-year sensitivity for the key extremes (same rule as for totals: never cherry-pick)
 print("\n=== start-year sensitivity (MK p / %/decade) ===")
 for k in ["Rx1day", "R95p", "SDII", "wet_days"]:

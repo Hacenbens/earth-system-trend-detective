@@ -11,11 +11,44 @@ Reported together, because they answer different questions:
   * Yue & Wang (2002) trend-free pre-whitening MK
   * Sen's slope with a 95 % confidence interval (scipy.stats.theilslopes)
   * lag-1 autocorrelation of the detrended series
+  * parametric cross-checks (statsmodels):
+      - OLS linear trend (slope, 95 % CI, p), assumes independent normal errors
+      - linear trend with AR(1) errors, i.e. ARIMA(1,0,0) with a time regressor, fitted by maximum likelihood.
+        This is the 'why not ARIMA?' check: it models year-to-year dependence explicitly instead of correcting the
+        MK variance. If it agrees with MK + Sen, the result does not depend on the method family.
+        Caution (same logic as the Hamed-Rao floor): with a NEGATIVE, non-significant AR coefficient the AR(1) model
+        shrinks the slope uncertainty and its p-value is smaller than MK/OLS. Use it to confirm the slope, and take
+        significance from MK (or OLS when phi is not significant). Project rule: methods_pipeline.md, section B.
 """
+import warnings
+
 import numpy as np
 import pandas as pd
 import pymannkendall as mk
 from scipy import stats
+from statsmodels.tsa.arima.model import ARIMA
+
+
+def _parametric(x, y, alpha):
+    """OLS trend and trend-with-AR(1)-errors. Time is centred so slope and intercept are not collinear."""
+    xc = x - x.mean()
+    ols = stats.linregress(xc, y)
+    tq = stats.t.ppf(1 - alpha / 2, len(y) - 2)
+    out = {"ols_slope": float(ols.slope), "ols_slope_ci_low": float(ols.slope - tq * ols.stderr),
+           "ols_slope_ci_high": float(ols.slope + tq * ols.stderr), "ols_p": float(ols.pvalue)}
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            fit = ARIMA(y, exog=xc, order=(1, 0, 0), trend="c").fit()
+        names = list(fit.model.param_names)            # ['const', 'x1', 'ar.L1', 'sigma2']
+        i_b, i_phi = names.index("x1"), names.index("ar.L1")
+        ci = np.asarray(fit.conf_int(alpha=alpha))[i_b]
+        out.update({"ar1_slope": float(fit.params[i_b]), "ar1_slope_ci_low": float(ci[0]),
+                    "ar1_slope_ci_high": float(ci[1]), "ar1_p": float(fit.pvalues[i_b]),
+                    "ar1_phi": float(fit.params[i_phi]), "ar1_phi_p": float(fit.pvalues[i_phi])})
+    except Exception:  # noqa: BLE001 - report as missing rather than crash the whole table
+        out.update(dict.fromkeys(["ar1_slope", "ar1_slope_ci_low", "ar1_slope_ci_high", "ar1_p", "ar1_phi", "ar1_phi_p"], np.nan))
+    return out
 
 
 def trend_summary(s: pd.Series, alpha: float = 0.05) -> dict:
@@ -41,4 +74,5 @@ def trend_summary(s: pd.Series, alpha: float = 0.05) -> dict:
         "lag1_autocorr": r1,
         "significant_all_tests": bool(max(orig.p, p_hr, yw.p) < alpha),
         "intercept": float(intercept),
+        **_parametric(x, y, alpha),
     }

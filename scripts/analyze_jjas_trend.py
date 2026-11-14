@@ -62,6 +62,10 @@ cols = ["n", "mean", "sen_slope", "slope_ci_low", "slope_ci_high", "slope_pct_pe
         "mk_tau", "mk_p", "mk_hamed_rao_p", "mk_yue_wang_p", "lag1_autocorr", "significant_all_tests"]
 print("=== JJAS trend 1998-2025 (mm per season; slope mm/yr) ===")
 print(res[cols].to_string(float_format=lambda v: f"{v:.3f}"))
+# method comparison: non-parametric (MK + Sen) vs parametric (OLS, trend with AR(1) errors = ARIMA(1,0,0) + time)
+print("\n=== method comparison (slope per year; p) ===")
+print(res[["sen_slope", "mk_p", "ols_slope", "ols_p", "ar1_slope", "ar1_slope_ci_low", "ar1_slope_ci_high", "ar1_p",
+          "ar1_phi", "ar1_phi_p"]].to_string(float_format=lambda v: f"{v:.3f}"))
 print("\n=== start-year sensitivity (end 2025) ===")
 print(sens.pivot(index="start", columns="product", values=["sen_slope", "slope_pct_per_decade", "mk_p", "mk_yue_wang_p"]).round(3).to_string())
 print("\n=== 2014 TRMM->GPM era check: IMERG minus CHIRPS (mm) ===")
