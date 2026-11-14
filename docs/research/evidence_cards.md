@@ -11,8 +11,8 @@ Region: Sahel box 10-20N, 18W-20E, with provisional W/C/E sub-regions (D-003b) �
 |---|---|---|---|---|---|---|
 | M-01 | West African Monsoon circulation (dynamic moisture supply) | 5 | 0 | 1 | 0 | **medium** |
 | M-02 | Atmospheric moisture availability (thermodynamic, Clausius-Clapeyron) | 2 | 2 | 1 | 0 | **low** |
-| M-03 | Organized convection (mesoscale convective systems) | 2 | 0 | 1 | 2 | **low** |
-| M-04 | Dust and aerosol interactions | 2 | 2 | 0 | 1 | **low** |
+| M-03 | Organized convection (mesoscale convective systems) | 3 | 0 | 1 | 1 | **low-medium** |
+| M-04 | Dust and aerosol interactions | 2 | 2 | 1 | 0 | **low** |
 | M-05 | Soil moisture and surface energy balance | 1 | 0 | 1 | 2 | **not_assessed** |
 
 ---
@@ -78,7 +78,7 @@ Warmer air can hold about 7 % more water vapour per kelvin. If local warming dri
 
 ---
 
-## M-03 · Organized convection (mesoscale convective systems)  (confidence: **low**)
+## M-03 · Organized convection (mesoscale convective systems)  (confidence: **low-medium**)
 
 Most Sahel rain falls from organized storm systems. More moisture and instability, and stronger wind shear, make them rain harder; extremes can rise even when storm numbers stay stable.
 
@@ -87,20 +87,22 @@ Most Sahel rain falls from organized storm systems. More moisture and instabilit
 | Stronger mid-level rising motion | Up, p = 0.02 | ✅ consistent | E-008 |
 | Extreme rain tracks ascent year to year | Detrended rho: Rx1day 0.73, R95p 0.76 with ascent | ✅ consistent | E-006, E-008 |
 | Rain per event and extremes increase | Rx1day no trend; SDII up but possibly a satellite-era artefact | ❔ unclear | E-006 |
-| Deep convective cores with strong Doppler updrafts in recent storms | EarthCARE CPR case studies not yet processed | ⬜ not tested | – |
+| Deep convective cores with strong Doppler updrafts in recent storms | EarthCARE CPR, 3 storms (W/C/E): radar echo tops 15.5-17.2 km (95th pct of rainy profiles), up to 18 km (tropopause); air-motion updrafts up to 6-9 m/s at 4-10 km; heavy rain below the 4.7 km melting level. Snapshots of present-day storms, not a trend | ✅ consistent | E-012 |
 | Stronger wind shear (L-20, L-21) | Shear not yet computed (needs 600-925 hPa winds, M2IMNPASM) | ⬜ not tested | – |
 
-**Supporting evidence:** E-008 · **Contradicting:** –
+**Supporting evidence:** E-008, E-012 · **Contradicting:** –
 
 **Alternative explanations**
 - Changes in storm frequency rather than intensity
 - Satellite-era changes in how IMERG resolves convective peaks (E-006)
 
-**Interpretation:** DRAFT for review: plausible and consistent where we can test it, but the key test (intensity trend) is blocked by the 2014 data issue, and the storm-structure evidence (EarthCARE) is not in yet.
+**Interpretation:** DRAFT for review: EarthCARE shows that today's Sahel rain comes from deep organized systems reaching the tropopause with strong updrafts, which is the storm type through which more moisture would produce heavier rain. Whether these storms have become more intense over time cannot be shown by EarthCARE (2024 onwards); that test still depends on the daily rain-gauge check of extremes.
 
 **Limitations**
-- Needs daily rain-gauge check of extremes
+- AC-TC labels thin layers near the tropopause as dust: treated as an artefact (only dust below 8 km used)
 - EarthCARE covers 2024-2025 only: process illustration, never a trend
+- EarthCARE: 4 overpasses, 2024-2025: process illustration only
+- Needs daily rain-gauge check of extremes
 
 **References (TO-VERIFY):** L-03, L-11, L-18, L-20, L-21, L-25
 
@@ -115,7 +117,7 @@ Saharan dust absorbs and scatters sunlight and can change cloud formation, which
 | Dust load changes over time | Dust optical depth -0.03 per decade (-8 %/decade), p < 0.001 | ✅ consistent | E-010 |
 | Dustier seasons are drier (same season) | Detrended rho with JJAS rainfall -0.12, p = 0.54 | ❌ inconsistent | E-010 |
 | Dust before the season (MAM) precedes drier JJAS | Detrended rho -0.07, p = 0.72 | ❌ inconsistent | – |
-| Dust layer sits at or above cloud level in storms | EarthCARE ATLID profiles not yet processed | ⬜ not tested | – |
+| Dust layer sits at or above cloud level in storms | EarthCARE AC-TC: dust (Saharan Air Layer) at 1-6 km, median 3.0-3.5 km; dry June case: dust over 96 % of the box. In storm cases dust lies BESIDE the storms (dust and rain in the same profile < 1 %). The lidar is blocked under thick storm cloud, so dust inside storms cannot be seen | ❔ unclear | E-012 |
 | Extreme dry vs wet years differ in dust | 2002 +1.5 sigma, 2024 -0.8 sigma | ✅ consistent | E-011 |
 
 **Supporting evidence:** E-011 · **Contradicting:** E-010
@@ -125,12 +127,14 @@ Saharan dust absorbs and scatters sunlight and can change cloud formation, which
 - Assimilation artefact in MERRA-2 aerosols (MODIS AOD assimilated; 2025 anomaly -3 sigma)
 - Remote aerosol forcing (Asian sulfate, L-22) acting through circulation
 
-**Interpretation:** DRAFT for review: the dust decline is a trend in the reanalysis, but it does not track rainfall from year to year. At most a secondary player, and possibly a consequence of wetter conditions.
+**Interpretation:** DRAFT for review: the dust decline is a trend in the reanalysis, but it does not track rainfall from year to year. At most a secondary player, and possibly a consequence of wetter conditions. EarthCARE confirms a deep Saharan dust layer (1-6 km) next to and north of the storms, but cannot see inside them, so the dust-storm interaction itself stays untested.
 
 **Limitations**
-- Not yet checked against MODIS AOD directly
 - 2025 MERRA-2 aerosol values suspicious
+- AC-TC labels thin layers near the tropopause as dust: treated as an artefact (only dust below 8 km used)
 - Column AOD says nothing about dust altitude
+- EarthCARE: 4 overpasses, 2024-2025: process illustration only
+- Not yet checked against MODIS AOD directly
 
 **References (TO-VERIFY):** L-22, Africa-pack 2.1-2.7 (citations to find)
 

@@ -1,0 +1,5 @@
+case,type,region,profiles_in_box,rain_profiles_pct,heavy_rain_profiles_pct,radar_echo_top_p95_km_rain_profiles,radar_echo_top_max_km,doppler_median_below_3km_ms,updraft_p99_ms,updraft_max_ms,updraft_max_height_km,high_level_dust_artefact_pixels,dust_profiles_pct,dust_height_median_km,dust_height_p90_km,dust_with_rain_profiles_pct,atlid_dusty_layers,atlid_dusty_layer_top_median_km,atlid_dusty_layer_base_median_km,atlid_aot355_median
+"2025-08-14 02:35:54 UTC, orbit 6880A",storm,west,1082,53.3,15.3,17.2,18.0,4.32,3.3,9.0,10.1,589,15.0,3.5,5.7,0.0,0,,,3.93
+"2024-09-02 00:45:50 UTC, orbit 1495A",storm,east,1083,54.1,15.4,16.9,18.2,3.84,1.8,8.3,4.2,2433,4.6,3.2,7.5,0.6,0,,,7.98
+"2024-08-23 01:40:46 UTC, orbit 1340A",storm,central,1083,21.0,17.5,15.5,17.0,4.1,1.1,6.2,9.6,4063,27.8,3.3,5.5,0.2,0,,,3.09
+"2025-06-11 00:49:18 UTC, orbit 5883A","dry pre-monsoon (dust, to confirm with ATLID)",east,1081,0.0,0.0,,13.9,,0.9,1.1,11.2,700,95.7,3.0,5.0,0.0,0,,,

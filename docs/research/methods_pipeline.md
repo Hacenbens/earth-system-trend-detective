@@ -57,7 +57,7 @@ Rule: every script writes a provenance note (dataset, version, box, period) in i
 |---|---|---|
 | Does rainfall rise with atmospheric moisture? | MERRA-2 TQV, QV | correlation, regression; Clausius–Clapeyron scaling check (~7 %/K) for extremes |
 | Moisture transport? | MERRA-2 IVT / u,v,q | correlation, composites of wet vs dry seasons |
-| Vertical motion vs rainfall? | MERRA-2 OMEGA profiles; EarthCARE CPR Doppler (2024–25, case studies only) | composites, profiles. ✅ MERRA-2 OMEGA500 done (E-008). ⬜ **EarthCARE CPR/ATLID not started** (T-01 to T-04) |
+| Vertical motion vs rainfall? | MERRA-2 OMEGA profiles; EarthCARE CPR Doppler (2024–25, case studies only) | composites, profiles. ✅ MERRA-2 OMEGA500 (E-008). ✅ EarthCARE CPR/ATLID case studies (E-012) |
 | Different regimes? | MERRA-2 fields | composite analysis (wet/dry terciles); clustering only if time allows |
 | Lagged relationships | all of the above | lagged correlation |
 
@@ -96,7 +96,7 @@ Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ d
 | T-01b | Confirm the shortlisted cases with IMERG **half-hourly** rain at the overpass time (daily totals can miss timing), and add one dusty pre-monsoon case (June 2025) for the dust card | ✅ 7 of 15 daily candidates had no rain at overpass time (removed). Recommended: 3 storms (east 2024-09-02, central 2024-08-23, west 2025-08-14) + 1 dry case (east 2025-06-11). Exact files: `outputs/earthcare/download_list.csv` (priority 1 = 12 files) | Claude | T-01 | done |
 | T-02 | ✅ done: MAAP offline token + client secret in `.env`. Confirm EarthCARE data access (ESA account the team holds, or JAXA G-Portal) and the exact level-2 product names: CPR reflectivity + Doppler, ATLID aerosol layers/extinction, combined target classification | ⬜ | Team (account holder) | – | 30 min |
 | T-03 | Download the 12 priority-1 files in `outputs/earthcare/download_list.csv` (3 products × 4 cases) into `data/raw/earthcare/` | ✅ 12 files, 39 MB (`scripts/fetch_earthcare.py`) | Claude | T-01b, T-02 | 30–60 min |
-| T-04 | Height-vs-distance cross-sections (CPR reflectivity, Doppler velocity, ATLID dust layer vs cloud); add results to cards M-03 and M-04. Case studies only, never a trend (D-002) | ⬜ | Claude | T-03 | 1–2 h |
+| T-04 | Height-vs-distance cross-sections (CPR reflectivity, Doppler velocity, ATLID dust layer vs cloud); add results to cards M-03 and M-04. Case studies only, never a trend (D-002) | ✅ 4 cross-sections + metrics (E-012); cards M-03 (now low-medium) and M-04 updated | Claude | T-03 | done |
 
 ### Layers 2–3: atmosphere and evidence cards
 | ID | Task | Status | Owner | Depends on | Estimate |
