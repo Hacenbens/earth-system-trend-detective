@@ -57,7 +57,7 @@ Rule: every script writes a provenance note (dataset, version, box, period) in i
 |---|---|---|
 | Does rainfall rise with atmospheric moisture? | MERRA-2 TQV, QV | correlation, regression; Clausius–Clapeyron scaling check (~7 %/K) for extremes |
 | Moisture transport? | MERRA-2 IVT / u,v,q | correlation, composites of wet vs dry seasons |
-| Vertical motion vs rainfall? | MERRA-2 OMEGA profiles; EarthCARE CPR Doppler (2024–25, case studies only) | composites, profiles |
+| Vertical motion vs rainfall? | MERRA-2 OMEGA profiles; EarthCARE CPR Doppler (2024–25, case studies only) | composites, profiles. ✅ MERRA-2 OMEGA500 done (E-008). ⬜ **EarthCARE CPR/ATLID not started** (T-01 to T-04) |
 | Different regimes? | MERRA-2 fields | composite analysis (wet/dry terciles); clustering only if time allows |
 | Lagged relationships | all of the above | lagged correlation |
 
@@ -72,7 +72,7 @@ JJAS rainfall anomaly vs growing-season NDVI anomaly (MODIS MOD13, AppEEARS), wi
 1. ✅ Acquisition and validation (Giovanni, CHIRPS cross-checks)
 2. ✅ H1 seasonal totals: trend + sensitivity + 2014 check (E-005)
 3. 🟡 H2 extremes: indices + trends done (E-006). Pending: daily cross-check with CHIRPS daily / GHCN gauges because the IMERG daily tail is not homogeneous across 2014
-4. ⬜ Spatial: sub-regions + pixel trend maps with FDR
+4. 🟡 Spatial: pixel trend maps with FDR and provisional sub-regions done (E-007, robustness checks). Pending: CHIRPS per-region check, D-003b borders, CHIRPS vs GPM maps
 5. 🟡 Layers 2–3: MERRA-2 moisture, ascent, convergence, winds, dust done (E-008 to E-011). Layer 3 evidence cards drafted (`data/app/mechanisms.json`, `docs/research/evidence_cards.md`; M-01 monsoon circulation = medium, others low). Next: science-lead review, EarthCARE case studies, wind shear, soil moisture, MODIS AOD check of the dust trend
 6. ⬜ NDVI add-on
 7. ⬜ App (FastAPI + JS, D-005) reads the processed outputs; slides
@@ -82,3 +82,64 @@ JJAS rainfall anomaly vs growing-season NDVI anomaly (MODIS MOD13, AppEEARS), wi
 - Daily IMERG Final single-cell maxima of 561 and 640 mm/day (1999, 2000) are spatially coherent storms (0 isolated pixels), not glitches, and are too few to move box means.
 - **But the daily tail is not homogeneous across 2014**: the wet-day 99.9th percentile is 112 mm/day in 1998–2013 vs 103 in 2014–2025, the share of light wet days (< 2 mm) falls steadily, and SDII steps up at 2014. Extreme-index trends from IMERG alone are therefore TO-VERIFY (E-006) until a daily gauge-based check.
 - **EDA findings for the index (2026-11-14):** season total, wet days, R10mm and R20mm are near-duplicates (Spearman ρ 0.88–0.98), so the prototype index double-counts one signal. CDD is the most independent indicator (|ρ| ≤ 0.64). PCA: PC1 = 79 % of variance (one overall "wet season" mode); PC2 is mainly CDD. Distributions are close to normal (Shapiro p > 0.05 except R95pTOT), so z-scores are acceptable. Box means are dominated by the wet south-west (10–13°N ≈ 866 mm vs 16–20°N ≈ 120 mm; the west carries 45 % of box rain).
+
+---
+
+## 5. Task tracker
+
+Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ done · ⛔ blocked. Owner "Claude" = can be done by the AI assistant in-session (logged in `docs/submission/si_usage.md`); "Team" = needs a person (decision, credentials, review). Last updated: 2026-11-14.
+
+### Layer 2: vertical structure with EarthCARE (ESA–JAXA; CPR by JAXA/NICT, ATLID by ESA). D-010 core, highest risk
+| ID | Task | Status | Owner | Depends on | Estimate |
+|---|---|---|---|---|---|
+| T-01 | Candidate overpass list: heavy-rain days JJAS 2024–2025 in the box (IMERG daily, on disk) matched to EarthCARE ground tracks | ⬜ | Claude | – | 10–30 min |
+| T-02 | Confirm EarthCARE data access (ESA account the team holds, or JAXA G-Portal) and the exact level-2 product names: CPR reflectivity + Doppler, ATLID aerosol layers/extinction, combined target classification | ⬜ | Team (account holder) | – | 30 min |
+| T-03 | Download 3–5 overpasses (Sahel segment only) | ⬜ | Team / Claude | T-01, T-02 | 30–60 min |
+| T-04 | Height-vs-distance cross-sections (CPR reflectivity, Doppler velocity, ATLID dust layer vs cloud); add results to cards M-03 and M-04. Case studies only, never a trend (D-002) | ⬜ | Claude | T-03 | 1–2 h |
+
+### Layers 2–3: atmosphere and evidence cards
+| ID | Task | Status | Owner | Depends on | Estimate |
+|---|---|---|---|---|---|
+| T-05 | Wind shear 600–925 hPa from MERRA-2 pressure levels (M2IMNPASM), for card M-03 | ⬜ | Claude | – | 10–15 min |
+| T-06 | Soil moisture (MERRA-2 M2TMNXLND GWETTOP), for card M-05 | ⬜ | Claude | – | 5–10 min |
+| T-07 | Check the MERRA-2 dust trend and its 2025 anomaly (−3 σ) against MODIS AOD directly (E-010) | ⬜ | Claude | – | 20–30 min |
+| T-08 | Science-lead review of the 5 evidence cards: confirm or edit interpretations and confidence (`data/app/mechanisms.json`) | ⬜ | Team (science lead) | – | 30 min |
+| T-09 | Second humidity source (e.g. AIRS) to confirm the MERRA-2 moistening (E-008) | ⬜ optional | Claude | – | 30 min |
+| T-10 | Ocean / remote forcing test for card M-02 (SST or global temperature vs Sahel moisture) | ⬜ optional | Claude | – | 30 min |
+
+### Layer 1: checks and spatial
+| ID | Task | Status | Owner | Depends on | Estimate |
+|---|---|---|---|---|---|
+| T-11 | CHIRPS per-sub-region check of the eastern signal (E-007) | 🟡 downloading | Claude | – | running |
+| T-12 | Daily rain-gauge check of extremes (CHIRPS daily or GHCN stations), to resolve the 2014 tail issue (E-006) | ⬜ | Claude | – | 1 h |
+| T-13 | Pettitt change-point test | ⬜ | Claude | – | 10 min |
+| T-14 | Seasonal decomposition (STL) + 5-year moving averages | ⬜ | Claude | – | 15 min |
+| T-15 | Long-term context chart from 1981 (CHIRPS / GPCP), context only | ⬜ | Claude | – | 30 min |
+| T-16 | CHIRPS vs GPM spatial comparison (maps) | ⬜ | Claude | – | 45 min |
+| T-17 | Lake Chad mask applied by default in maps and the app | ⬜ | Claude | – | 10 min |
+
+### Decisions needed
+| ID | Task | Status | Owner |
+|---|---|---|---|
+| T-18 | D-003b: sub-region borders (provisional W 18°W–5°W, C 5°W–10°E, E 10°E–20°E) | ⬜ | Team |
+| T-19 | Index design: amount + dry spell, or PCA weights (the prototype double-counts) | ⬜ | Team |
+| T-20 | Flagship story: eastern Sahel "more regular rainy season" (pending T-11) | ⬜ | Team |
+| T-21 | Use CloudSat/CALIPSO as fallback if EarthCARE access fails | ⬜ | Team |
+
+### Impact add-on
+| ID | Task | Status | Owner | Depends on | Estimate |
+|---|---|---|---|---|---|
+| T-22 | NDVI add-on (D-011): MODIS NDVI anomaly vs JJAS rainfall anomaly, 0–2 month lags | ⬜ | Claude | – | 45 min |
+
+### Application and submission
+| ID | Task | Status | Owner | Depends on | Estimate |
+|---|---|---|---|---|---|
+| T-23 | Install `fastapi`, `uvicorn[standard]`, `cartopy`, `jupyterlab`, `ipykernel`, `pyarrow` (blocked for the assistant) | ⬜ | Team lead | – | 5 min |
+| T-24 | Merge PR #1, then #3; retarget and finish #2 | ⬜ | Team | reviews | – |
+| T-25 | Backend: Layer 1 API from `docs/app/api_contract.md` (regions, datasets, investigations, detect) | ⬜ | Claude / Backend A | T-23, T-24 | 2 h |
+| T-26 | Front-end against the contract's mock JSON (region picker, Layer 1 result, regional comparison) | ⬜ | Front-end | – | – |
+| T-27 | Layers 2–5 endpoints (investigate, mechanisms from `data/app/mechanisms.json`, project, qualitative solve) | ⬜ | Backend B | T-25 | 2–3 h |
+| T-28 | Report endpoint (JSON/CSV/HTML) | ⬜ | Integration | T-25 | 1 h |
+| T-29 | Slides (≤ 7) or 30-second video | ⬜ | Design lead | results | – |
+| T-30 | Confirm the submission cut-off; make the repo public before submitting; final SI-use log check | ⬜ | Team lead | – | – |
+| T-31 | Housekeeping: tick the outdated open questions in `DECISIONS.md` (Earthdata login works; D-007 indices chosen) | ⬜ | Claude | – | 5 min |
