@@ -4,6 +4,7 @@ Drafted with AI assistance (Claude Code). See docs/submission/si_usage.md.
 Validated: Final monthly Aug 2024 over the Sahel box = 0.240 mm/hr, same as the full-file computation and Giovanni.
 """
 import io
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import earthaccess
@@ -34,8 +35,8 @@ def _session():
     return https_session()
 
 
-def box_mean(session, granule, group, box=SAHEL, retries=4):
-    """(date, cos-lat weighted mean of `precipitation` over valid cells, n valid cells) for one granule."""
+def box_field(session, granule, group, box=SAHEL, retries=4):
+    """The `precipitation` field over the box for one granule (DataArray lon x lat, NaN for fill), plus its date."""
     (lo0, lo1), (la0, la1) = _index(box)
     pre = f"/{group}" if group else ""
     ce = (f"{pre}/precipitation[0:1:0][{lo0}:1:{lo1}][{la0}:1:{la1}];"
@@ -49,12 +50,18 @@ def box_mean(session, granule, group, box=SAHEL, retries=4):
         except Exception:
             if attempt == retries - 1:
                 raise
+            time.sleep(10 * (attempt + 1))
     ds = xr.open_dataset(io.BytesIO(r.content), engine="h5netcdf", group=group, decode_timedelta=False)
-    p = ds["precipitation"].isel(time=0)
+    p = ds["precipitation"].isel(time=0).load()
     assert abs(float(p.lon.min()) - (box["lon"][0] + 0.05)) < 1e-3 and abs(float(p.lat.max()) - (box["lat"][1] - 0.05)) < 1e-3
-    p = p.where(p >= 0)  # fill -9999.9
+    return pd.Timestamp(str(ds["time"].values[0])[:10]), p.where(p >= 0)  # fill -9999.9 -> NaN
+
+
+def box_mean(session, granule, group, box=SAHEL, retries=4):
+    """(date, cos-lat weighted mean of `precipitation` over valid cells, n valid cells) for one granule."""
+    date, p = box_field(session, granule, group, box, retries)
     w = np.cos(np.deg2rad(p["lat"]))
-    return pd.Timestamp(str(ds["time"].values[0])[:10]), float(p.weighted(w).mean(skipna=True)), int(p.notnull().sum())
+    return date, float(p.weighted(w).mean(skipna=True)), int(p.notnull().sum())
 
 
 def series(short_name, start, end, box=SAHEL, workers=8):
