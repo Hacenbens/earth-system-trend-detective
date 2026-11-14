@@ -47,9 +47,9 @@ Rule: every script writes a provenance note (dataset, version, box, period) in i
 | Method | Status | Note |
 |---|---|---|
 | Area-weighted averages | ✅ | cos(lat) weights everywhere |
-| West / central / east Sahel sub-regions | ⬜ | Needs D-003b. Proposal: W 18°W–5°W, C 5°W–10°E, E 10°E–20°E, all 10–20°N (to confirm against literature, L-12) |
-| Pixel-by-pixel trends | ⬜ | possible directly from the daily IMERG cube (JJAS totals and indices per 0.1° cell) |
-| Trend-magnitude and significance maps with multiple-testing correction | ⬜ | Benjamini–Hochberg FDR across pixels (Wilks 2016, field significance). Show only FDR-significant stippling |
+| West / central / east Sahel sub-regions | 🟡 computed with the provisional borders (E-007); D-003b still open | Needs D-003b. Proposal: W 18°W–5°W, C 5°W–10°E, E 10°E–20°E, all 10–20°N (to confirm against literature, L-12) |
+| Pixel-by-pixel trends | ✅ (`scripts/eda_correlation_maps.py`) | possible directly from the daily IMERG cube (JJAS totals and indices per 0.1° cell) |
+| Trend-magnitude and significance maps with multiple-testing correction | ✅ BH-FDR; only 0.3 % of cells significant (E-007) | Benjamini–Hochberg FDR across pixels (Wilks 2016, field significance). Show only FDR-significant stippling |
 | CHIRPS vs GPM spatial comparison | ⬜ | `fetch_chirps_sahel.py` keeps only box means today, so it must be extended to save the JJAS field (0.05°, regrid to 0.1°) |
 
 ### D. Atmospheric relationship analysis: *why* (Layers 2–3, D-010)
@@ -81,3 +81,4 @@ JJAS rainfall anomaly vs growing-season NDVI anomaly (MODIS MOD13, AppEEARS), wi
 - IMERG Late Run is not trend-quality (E-004: 20-point swing vs CHIRPS in 2026).
 - Daily IMERG Final single-cell maxima of 561 and 640 mm/day (1999, 2000) are spatially coherent storms (0 isolated pixels), not glitches, and are too few to move box means.
 - **But the daily tail is not homogeneous across 2014**: the wet-day 99.9th percentile is 112 mm/day in 1998–2013 vs 103 in 2014–2025, the share of light wet days (< 2 mm) falls steadily, and SDII steps up at 2014. Extreme-index trends from IMERG alone are therefore TO-VERIFY (E-006) until a daily gauge-based check.
+- **EDA findings for the index (2026-11-14):** season total, wet days, R10mm and R20mm are near-duplicates (Spearman ρ 0.88–0.98), so the prototype index double-counts one signal. CDD is the most independent indicator (|ρ| ≤ 0.64). PCA: PC1 = 79 % of variance (one overall "wet season" mode); PC2 is mainly CDD. Distributions are close to normal (Shapiro p > 0.05 except R95pTOT), so z-scores are acceptable. Box means are dominated by the wet south-west (10–13°N ≈ 866 mm vs 16–20°N ≈ 120 mm; the west carries 45 % of box rain).
