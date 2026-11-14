@@ -42,7 +42,7 @@ outputs/figures/    charts and maps for the app and slides
 - **Every claim** shown in the app or slides needs a row in `docs/research/evidence_ledger.md`. Cite only papers marked `READ` in `literature.md`.
 - **AI use must be logged** in `docs/submission/si_usage.md` (Space Apps rule): which tool, for what, and who reviewed it.
 - Work on a branch (`git switch -c <name>/<topic>`) and open a pull request into `main`.
-- Data files (`data/raw`, `data/processed`, `*.nc`, `*.HDF5`, `*.tif`) are not committed. Regenerate them with the scripts.
+- Raw data (`data/raw`, `*.nc`, `*.HDF5`, `*.tif`) is not committed. Regenerate it with the scripts. Small derived CSVs in `data/processed/` **are** committed so the team can work without an Earthdata account. Keep them small (no large files).
 
 ## Status
 - Phase 01 (scientific framing): done. Decisions D-001…D-013.
