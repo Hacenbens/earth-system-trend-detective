@@ -1,7 +1,7 @@
 """IMERG V07 Final monthly, Sahel box, full record 1998-01 .. 2025-09 -> data/processed/sahel_imerg_final_monthly_1998_2025.csv
 
 Drafted with AI assistance (Claude Code). See docs/submission/si_usage.md.
-Usage:  .venv/bin/python scripts/fetch_imerg_final_monthly.py   (needs Earthdata credentials in ~/.netrc)
+Usage:  .venv/bin/python scripts/fetch_imerg_final_monthly.py   (needs Earthdata credentials in .env or ~/.netrc)
 """
 import sys
 from pathlib import Path

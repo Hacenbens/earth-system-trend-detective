@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from .auth import https_session
+
 # 0.1 deg grid, cell centres -179.95..179.95 (lon) and -89.95..89.95 (lat); dims are (time, lon, lat)
 SAHEL = {"lat": (10.0, 20.0), "lon": (-18.0, 20.0)}  # provisional box, decision D-003b
 
@@ -29,8 +31,7 @@ def _index(box):
 
 
 def _session():
-    earthaccess.login(strategy="netrc")
-    return earthaccess.get_requests_https_session()
+    return https_session()
 
 
 def box_mean(session, granule, group, box=SAHEL, retries=4):

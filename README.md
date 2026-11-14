@@ -26,11 +26,13 @@ outputs/figures/    charts and maps for the app and slides
    uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt
    # or: python -m venv .venv && .venv/bin/pip install -r requirements.txt
    ```
-2. **NASA Earthdata login** (needed for IMERG): create an account at https://urs.earthdata.nasa.gov, then put your credentials in `~/.netrc`:
+2. **NASA Earthdata login** (needed for IMERG): create an account at https://urs.earthdata.nasa.gov, then:
+   ```bash
+   cp .env.example .env    # then fill in EARTHDATA_USERNAME and EARTHDATA_PASSWORD in .env
+   chmod 600 .env
    ```
-   machine urs.earthdata.nasa.gov login <your_user> password <your_password>
-   ```
-   (`chmod 600 ~/.netrc`). Never commit credentials. `.netrc` and `.env` are git-ignored.
+   `.env` is git-ignored. Never commit credentials. The scripts read `.env` first, then fall back to `~/.netrc`
+   (`machine urs.earthdata.nasa.gov login <user> password <pass>`) if you prefer that.
 3. **Reproduce the data** (outputs go to `data/processed/`):
    ```bash
    .venv/bin/python scripts/fetch_sahel_series.py      # IMERG V07 Final monthly + Late daily, Sahel box, 2024–2026
