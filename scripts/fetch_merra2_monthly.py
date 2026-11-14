@@ -34,13 +34,13 @@ for p in PRODUCTS:
 
 rows = []
 for reg, lon in REGIONS.items():
-    parts = [area_mean(ds[PRODUCTS[p]], lon_range=lon) for p, ds in fields.items()]
+    parts = [area_mean(ds[[v.split('@')[0] for v in PRODUCTS[p]]], lon_range=lon) for p, ds in fields.items() if p != 'M2IMNPASM']
     df = pd.concat(parts, axis=1)
     df.insert(0, "region", reg)
     rows.append(df)
 out = pd.concat(rows).reset_index().rename(columns={"time": "date"})
 out = out.loc[:, ~out.columns.duplicated()]
-units = {v: str(fields[p][v].attrs.get("units", "")) for p in fields for v in PRODUCTS[p]}
+units = {v.split("@")[0]: str(fields[p][v.split("@")[0]].attrs.get("units", "")) for p in fields for v in PRODUCTS[p]}
 out.to_csv(ROOT / "data" / "processed" / "sahel_merra2_monthly_1998_2025.csv", index=False, float_format="%.6g")
 print("units:", units)
 print(out.groupby("region").size().to_string())

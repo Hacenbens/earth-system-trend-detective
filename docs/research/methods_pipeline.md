@@ -101,8 +101,8 @@ Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ d
 ### Layers 2–3: atmosphere and evidence cards
 | ID | Task | Status | Owner | Depends on | Estimate |
 |---|---|---|---|---|---|
-| T-05 | Wind shear 600–925 hPa from MERRA-2 pressure levels (M2IMNPASM), for card M-03 | ⬜ | Claude | – | 10–15 min |
-| T-06 | Soil moisture (MERRA-2 M2TMNXLND GWETTOP), for card M-05 | ⬜ | Claude | – | 5–10 min |
+| T-05 | Wind shear 600–925 hPa from MERRA-2 pressure levels (M2IMNPASM), for card M-03 | ✅ no shear trend (E-013); M-03 expectation marked inconsistent | Claude | – | done |
+| T-06 | Soil moisture (MERRA-2 M2TMNXLND GWETTOP), for card M-05 | ✅ wetter, more evaporative land (E-014); M-05 now 'low' (land response yes, feedback unproven) | Claude | – | done |
 | T-07 | Check the MERRA-2 dust trend and its 2025 anomaly (−3 σ) against MODIS AOD directly (E-010) | ⬜ | Claude | – | 20–30 min |
 | T-08 | Science-lead review of the 5 evidence cards: confirm or edit interpretations and confidence (`data/app/mechanisms.json`) | ⬜ | Team (science lead) | – | 30 min |
 | T-09 | Second humidity source (e.g. AIRS) to confirm the MERRA-2 moistening (E-008) | ⬜ optional | Claude | – | 30 min |

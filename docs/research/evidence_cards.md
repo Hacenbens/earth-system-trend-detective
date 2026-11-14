@@ -11,9 +11,9 @@ Region: Sahel box 10-20N, 18W-20E, with provisional W/C/E sub-regions (D-003b) �
 |---|---|---|---|---|---|---|
 | M-01 | West African Monsoon circulation (dynamic moisture supply) | 5 | 0 | 1 | 0 | **medium** |
 | M-02 | Atmospheric moisture availability (thermodynamic, Clausius-Clapeyron) | 2 | 2 | 1 | 0 | **low** |
-| M-03 | Organized convection (mesoscale convective systems) | 3 | 0 | 1 | 1 | **low-medium** |
+| M-03 | Organized convection (mesoscale convective systems) | 3 | 1 | 1 | 0 | **low-medium** |
 | M-04 | Dust and aerosol interactions | 2 | 2 | 1 | 0 | **low** |
-| M-05 | Soil moisture and surface energy balance | 1 | 0 | 1 | 2 | **not_assessed** |
+| M-05 | Soil moisture and surface energy balance | 3 | 0 | 1 | 1 | **low** |
 
 ---
 
@@ -88,13 +88,14 @@ Most Sahel rain falls from organized storm systems. More moisture and instabilit
 | Extreme rain tracks ascent year to year | Detrended rho: Rx1day 0.73, R95p 0.76 with ascent | ✅ consistent | E-006, E-008 |
 | Rain per event and extremes increase | Rx1day no trend; SDII up but possibly a satellite-era artefact | ❔ unclear | E-006 |
 | Deep convective cores with strong Doppler updrafts in recent storms | EarthCARE CPR, 3 storms (W/C/E): radar echo tops 15.5-17.2 km (95th pct of rainy profiles), up to 18 km (tropopause); air-motion updrafts up to 6-9 m/s at 4-10 km; heavy rain below the 4.7 km melting level. Snapshots of present-day storms, not a trend | ✅ consistent | E-012 |
-| Stronger wind shear (L-20, L-21) | Shear not yet computed (needs 600-925 hPa winds, M2IMNPASM) | ⬜ not tested | – |
+| Stronger wind shear (L-20, L-21) | MERRA-2 zonal shear 925-600 hPa (mean ~11 m/s, African Easterly Jet ~ -10 m/s at 600 hPa): no significant trend in any sub-region (central -0.24 m/s per decade, p = 0.07); not associated with rainfall, Rx1day, R95p or SDII year to year (|rho| <= 0.32, n.s.). One exception: a weaker easterly jet goes with larger Rx1day (rho 0.49, p = 0.008; one of many tests) | ❌ inconsistent | E-013 |
 
-**Supporting evidence:** E-008, E-012 · **Contradicting:** –
+**Supporting evidence:** E-008, E-012 · **Contradicting:** E-013
 
 **Alternative explanations**
 - Changes in storm frequency rather than intensity
 - Satellite-era changes in how IMERG resolves convective peaks (E-006)
+- Shear-driven storm intensification (L-20, L-21, L-03) is not supported for 1998-2025 in MERRA-2: shear did not increase
 
 **Interpretation:** DRAFT for review: EarthCARE shows that today's Sahel rain comes from deep organized systems reaching the tropopause with strong updrafts, which is the storm type through which more moisture would produce heavier rain. Whether these storms have become more intense over time cannot be shown by EarthCARE (2024 onwards); that test still depends on the daily rain-gauge check of extremes.
 
@@ -140,26 +141,30 @@ Saharan dust absorbs and scatters sunlight and can change cloud formation, which
 
 ---
 
-## M-05 · Soil moisture and surface energy balance  (confidence: **not_assessed**)
+## M-05 · Soil moisture and surface energy balance  (confidence: **low**)
 
 Wet soils evaporate more and stay cooler, which can feed moisture back to the atmosphere and change where new storms form; soil-moisture contrasts can strengthen storm systems through wind shear.
 
 | Expected if this mechanism matters | What we observe | Status | Evidence |
 |---|---|---|---|
 | Cooler surface in wetter seasons/regions | Wetter years cooler (rho -0.53); east cooling -0.29 C/decade | ✅ consistent | E-009 |
-| Shorter dry spells where soils stay moist | East dry spells shorter (robust); soil moisture itself not yet tested | ❔ unclear | E-007 |
-| Soil moisture increases in the rainy season | Not fetched (MERRA-2 M2TMNXLND GWETTOP or ESA CCI) | ⬜ not tested | – |
+| Shorter dry spells where soils stay moist | Wetter-soil seasons have shorter dry spells (east rho -0.59, p = 0.001), but soil wetness follows rainfall by construction; June soil moisture does NOT foreshadow July-September rain (rho 0.17, p = 0.40) | ❔ unclear | E-007, E-014 |
+| Soil moisture increases in the rainy season | MERRA-2 topsoil wetness +0.027 per decade (box, p = 0.001), east +0.032 (+11 %/decade, p < 0.001); root zone also up everywhere. Partly by construction: MERRA-2 land is forced by observation-corrected rainfall | ✅ consistent | E-014 |
 | Greener vegetation (NDVI add-on, D-011) | Not fetched | ⬜ not tested | – |
+| More energy goes into evaporation, cooling the surface | Evaporative fraction rises (box +0.027 per decade, p = 0.002; east +0.040, p < 0.001) and is strongly anti-correlated with near-surface temperature (rho -0.65 to -0.86, p < 0.001): wetter land evaporates more and stays cooler | ✅ consistent | E-014, E-009 |
 
-**Supporting evidence:** E-009 · **Contradicting:** –
+**Supporting evidence:** E-009, E-014 · **Contradicting:** –
 
 **Alternative explanations**
 - Surface cooling from clouds and rain, not soil moisture
 - Land-use and vegetation change
 
-**Interpretation:** DRAFT for review: not assessed yet. The cooling is consistent but has a simpler explanation (cloud and rain). Needs soil-moisture and NDVI data.
+**Interpretation:** DRAFT for review: the land surface responds as expected to a wetter rainy season: wetter soils, more evaporation, cooler surface. This explains the surface cooling in the east (E-009) without local warming. Whether the land feeds rain back (a feedback) is not shown: MERRA-2 soil moisture is driven by observed rainfall, and early-season soil moisture does not predict later rain.
 
 **Limitations**
-- No soil-moisture or vegetation data in the analysis yet
+- MERRA-2 land is forced by observation-corrected precipitation, so soil-rain links are partly circular
+- MERRA-2 LAI is a prescribed climatology (no trend information)
+- Box/sub-region means hide the soil-moisture gradients that matter for storms (L-20)
+- NDVI not yet fetched
 
 **References (TO-VERIFY):** L-19, L-20, L-21, L-36, L-39

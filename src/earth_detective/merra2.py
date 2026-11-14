@@ -23,6 +23,8 @@ PRODUCTS = {
     "M2TMNXSLV": ["TQV", "QV2M", "T2M", "OMEGA500", "U850", "V850"],   # single-level diagnostics
     "M2TMNXINT": ["UFLXQV", "VFLXQV", "DQVDT_DYN"],                     # vertically integrated moisture budget
     "M2TMNXAER": ["DUEXTTAU", "DUCMASS", "DUSMASS", "TOTEXTTAU"],       # aerosol / dust
+    "M2TMNXLND": ["GWETTOP", "GWETROOT", "EVLAND", "LHLAND", "SHLAND", "LAI", "TSOIL1"],   # land surface (land cells only)
+    "M2IMNPASM": ["U@3:14", "V@3:14"],                                   # winds on pressure levels 925..600 hPa (lev index 3..14)
 }
 
 
@@ -34,8 +36,15 @@ def _index(box):
 
 def box_month(session, granule, variables, box=SAHEL, retries=4):
     (la0, la1), (lo0, lo1) = _index(box)
-    ce = ";".join([f"/{v}[0:1:0][{la0}:1:{la1}][{lo0}:1:{lo1}]" for v in variables]
-                  + [f"/lat[{la0}:1:{la1}]", f"/lon[{lo0}:1:{lo1}]", "/time"])
+    parts, levs = [], None
+    for v in variables:   # "NAME" (2-D) or "NAME@k0:k1" (3-D, pressure-level indices k0..k1)
+        if "@" in v:
+            name, rng = v.split("@"); k0, k1 = rng.split(":"); levs = (k0, k1)
+            parts.append(f"/{name}[0:1:0][{k0}:1:{k1}][{la0}:1:{la1}][{lo0}:1:{lo1}]")
+        else:
+            parts.append(f"/{v}[0:1:0][{la0}:1:{la1}][{lo0}:1:{lo1}]")
+    extra = [f"/lev[{levs[0]}:1:{levs[1]}]"] if levs else []
+    ce = ";".join(parts + extra + [f"/lat[{la0}:1:{la1}]", f"/lon[{lo0}:1:{lo1}]", "/time"])
     url = next(u["URL"] for u in granule["umm"]["RelatedUrls"] if u.get("Subtype") == "OPENDAP DATA")
     for attempt in range(retries):
         try:

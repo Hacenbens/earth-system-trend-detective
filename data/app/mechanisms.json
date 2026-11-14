@@ -199,19 +199,24 @@
         },
         {
           "expectation": "Stronger wind shear (L-20, L-21)",
-          "observed": "Shear not yet computed (needs 600-925 hPa winds, M2IMNPASM)",
-          "status": "not_tested",
-          "evidence_ids": []
+          "observed": "MERRA-2 zonal shear 925-600 hPa (mean ~11 m/s, African Easterly Jet ~ -10 m/s at 600 hPa): no significant trend in any sub-region (central -0.24 m/s per decade, p = 0.07); not associated with rainfall, Rx1day, R95p or SDII year to year (|rho| <= 0.32, n.s.). One exception: a weaker easterly jet goes with larger Rx1day (rho 0.49, p = 0.008; one of many tests)",
+          "status": "inconsistent",
+          "evidence_ids": [
+            "E-013"
+          ]
         }
       ],
       "supporting_evidence_ids": [
         "E-008",
         "E-012"
       ],
-      "contradictory_evidence_ids": [],
+      "contradictory_evidence_ids": [
+        "E-013"
+      ],
       "alternative_explanations": [
         "Changes in storm frequency rather than intensity",
-        "Satellite-era changes in how IMERG resolves convective peaks (E-006)"
+        "Satellite-era changes in how IMERG resolves convective peaks (E-006)",
+        "Shear-driven storm intensification (L-20, L-21, L-03) is not supported for 1998-2025 in MERRA-2: shear did not increase"
       ],
       "researcher_interpretation": "DRAFT for review: EarthCARE shows that today's Sahel rain comes from deep organized systems reaching the tropopause with strong updrafts, which is the storm type through which more moisture would produce heavier rain. Whether these storms have become more intense over time cannot be shown by EarthCARE (2024 onwards); that test still depends on the daily rain-gauge check of extremes.",
       "confidence": "low-medium",
@@ -314,37 +319,53 @@
         },
         {
           "expectation": "Shorter dry spells where soils stay moist",
-          "observed": "East dry spells shorter (robust); soil moisture itself not yet tested",
+          "observed": "Wetter-soil seasons have shorter dry spells (east rho -0.59, p = 0.001), but soil wetness follows rainfall by construction; June soil moisture does NOT foreshadow July-September rain (rho 0.17, p = 0.40)",
           "status": "unclear",
           "evidence_ids": [
-            "E-007"
+            "E-007",
+            "E-014"
           ]
         },
         {
           "expectation": "Soil moisture increases in the rainy season",
-          "observed": "Not fetched (MERRA-2 M2TMNXLND GWETTOP or ESA CCI)",
-          "status": "not_tested",
-          "evidence_ids": []
+          "observed": "MERRA-2 topsoil wetness +0.027 per decade (box, p = 0.001), east +0.032 (+11 %/decade, p < 0.001); root zone also up everywhere. Partly by construction: MERRA-2 land is forced by observation-corrected rainfall",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-014"
+          ]
         },
         {
           "expectation": "Greener vegetation (NDVI add-on, D-011)",
           "observed": "Not fetched",
           "status": "not_tested",
           "evidence_ids": []
+        },
+        {
+          "expectation": "More energy goes into evaporation, cooling the surface",
+          "observed": "Evaporative fraction rises (box +0.027 per decade, p = 0.002; east +0.040, p < 0.001) and is strongly anti-correlated with near-surface temperature (rho -0.65 to -0.86, p < 0.001): wetter land evaporates more and stays cooler",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-014",
+            "E-009"
+          ]
         }
       ],
       "supporting_evidence_ids": [
-        "E-009"
+        "E-009",
+        "E-014"
       ],
       "contradictory_evidence_ids": [],
       "alternative_explanations": [
         "Surface cooling from clouds and rain, not soil moisture",
         "Land-use and vegetation change"
       ],
-      "researcher_interpretation": "DRAFT for review: not assessed yet. The cooling is consistent but has a simpler explanation (cloud and rain). Needs soil-moisture and NDVI data.",
-      "confidence": "not_assessed",
+      "researcher_interpretation": "DRAFT for review: the land surface responds as expected to a wetter rainy season: wetter soils, more evaporation, cooler surface. This explains the surface cooling in the east (E-009) without local warming. Whether the land feeds rain back (a feedback) is not shown: MERRA-2 soil moisture is driven by observed rainfall, and early-season soil moisture does not predict later rain.",
+      "confidence": "low",
       "limitations": [
-        "No soil-moisture or vegetation data in the analysis yet"
+        "MERRA-2 land is forced by observation-corrected precipitation, so soil-rain links are partly circular",
+        "MERRA-2 LAI is a prescribed climatology (no trend information)",
+        "Box/sub-region means hide the soil-moisture gradients that matter for storms (L-20)",
+        "NDVI not yet fetched"
       ],
       "references": [
         "L-19",

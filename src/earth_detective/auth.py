@@ -32,7 +32,14 @@ def login():
     """Log in to Earthdata; returns the earthaccess Auth object. Raises if no credentials are found."""
     load_env()
     have_env = os.environ.get("EARTHDATA_USERNAME") and os.environ.get("EARTHDATA_PASSWORD")
-    auth = earthaccess.login(strategy="environment" if have_env else "netrc")
+    auth = None
+    if have_env:
+        try:
+            auth = earthaccess.login(strategy="environment")
+        except Exception:
+            print("WARNING: Earthdata rejected EARTHDATA_USERNAME/EARTHDATA_PASSWORD from .env; trying ~/.netrc instead.")
+    if not auth or not auth.authenticated:
+        auth = earthaccess.login(strategy="netrc")
     if not auth or not auth.authenticated:
         raise RuntimeError("Earthdata login failed: fill in .env (see .env.example) or ~/.netrc.")
     return auth
