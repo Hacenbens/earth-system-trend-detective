@@ -1,9 +1,11 @@
 # Layer 3 evidence cards (EXPLAIN)
 
 Generated from `data/app/mechanisms.json` by `scripts/render_evidence_cards.py`. Edit the JSON, not this file.
+**New to these cards? Read [How to read the evidence cards](how_to_read_evidence_cards.md) first:** statuses, confidence levels, % per decade, p-values, ρ, σ and the EarthCARE percentages.
+
 Region: Sahel box 10-20N, 18W-20E, with provisional W/C/E sub-regions (D-003b) · Period: JJAS 1998-2025
 
-**Detected trend (Layer 1):** Season totals: wetting tendency (+3.3 %/decade, p = 0.15), stronger in the east (+8.7 %, p = 0.055, partly driven by 2024). Longest dry spell: shortening, robust in the east (-9.6 %/decade, p = 0.001). Extremes: inconclusive (2014 satellite-era change in the daily tail).
+**Detected trend (Layer 1):** Season totals (box): wetting tendency, +3.3 %/decade (p = 0.15). East sub-region: +8.7 %/decade in IMERG (p = 0.055), confirmed by CHIRPS (+7.9 %/decade, p = 0.026); west and central flat in both. Longest dry spell: shortening, robust in the east (-9.6 %/decade, p = 0.001). Extremes: inconclusive (2014 satellite-era change in the daily tail).
 
 > Interpretations and confidence levels are **drafts written with AI assistance** for the science lead to review. Evidence IDs point to `docs/research/evidence_ledger.md`. References are still TO-VERIFY. Association is not causation.
 
@@ -125,13 +127,13 @@ Saharan dust absorbs and scatters sunlight and can change cloud formation, which
 
 **Alternative explanations**
 - Reverse causality: wetter, greener seasons emit less dust
-- Assimilation artefact in MERRA-2 aerosols (MODIS AOD assimilated; 2025 anomaly -3 sigma)
+- Assimilation artefact in MERRA-2 aerosols (MODIS AOD assimilated; 2025 anomaly -4 sigma)
 - Remote aerosol forcing (Asian sulfate, L-22) acting through circulation
 
 **Interpretation:** DRAFT for review: the dust decline is a trend in the reanalysis, but it does not track rainfall from year to year. At most a secondary player, and possibly a consequence of wetter conditions. EarthCARE confirms a deep Saharan dust layer (1-6 km) next to and north of the storms, but cannot see inside them, so the dust-storm interaction itself stays untested.
 
 **Limitations**
-- 2025 MERRA-2 aerosol values suspicious
+- 2025 MERRA-2 dust value -4 sigma (likely artefact; trend holds without 2025)
 - AC-TC labels thin layers near the tropopause as dust: treated as an artefact (only dust below 8 km used)
 - Column AOD says nothing about dust altitude
 - EarthCARE: 4 overpasses, 2024-2025: process illustration only

@@ -11,6 +11,7 @@ d = json.loads((ROOT / "data" / "app" / "mechanisms.json").read_text())
 ICON = {"consistent": "✅ consistent", "inconsistent": "❌ inconsistent", "unclear": "❔ unclear", "not_tested": "⬜ not tested"}
 out = ["# Layer 3 evidence cards (EXPLAIN)", "",
        "Generated from `data/app/mechanisms.json` by `scripts/render_evidence_cards.py`. Edit the JSON, not this file.",
+       "**New to these cards? Read [How to read the evidence cards](how_to_read_evidence_cards.md) first:** statuses, confidence levels, % per decade, p-values, ρ, σ and the EarthCARE percentages.", "",
        f"Region: {d['region']} · Period: {d['period']}", "", f"**Detected trend (Layer 1):** {d['detected_trend_summary']}", "",
        "> Interpretations and confidence levels are **drafts written with AI assistance** for the science lead to review. "
        "Evidence IDs point to `docs/research/evidence_ledger.md`. References are still TO-VERIFY. Association is not causation.", "",
