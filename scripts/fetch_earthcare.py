@@ -19,9 +19,9 @@ sys.path.insert(0, str(ROOT / "src"))
 from earth_detective.auth import load_env
 
 load_env()
-TOKEN = os.environ.get("ESA_MAAP_TOKEN")
+TOKEN = os.environ.get("ESA_MAAP_TOKEN") or os.environ.get("MAAP_OFFLINE_TOKEN")
 if not TOKEN:
-    sys.exit("ESA_MAAP_TOKEN is missing: generate a token in the ESA MAAP portal (EO Sign In) and add it to .env")
+    sys.exit("No MAAP token: generate one in the ESA MAAP portal (EO Sign In) and add ESA_MAAP_TOKEN (or MAAP_OFFLINE_TOKEN) to .env")
 
 OUT = ROOT / "data" / "raw" / "earthcare"
 OUT.mkdir(parents=True, exist_ok=True)
