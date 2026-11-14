@@ -94,8 +94,8 @@ Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ d
 |---|---|---|---|---|---|
 | T-01 | Candidate overpass list: heavy-rain days JJAS 2024–2025 in the box (IMERG daily, on disk) matched to EarthCARE ground tracks | ✅ 673 passes, 345 cross ≥ 20 mm/day rain, 26 strong cases with lidar + synergy products (`outputs/earthcare/overpass_candidates_2024_2025.csv`, `scripts/earthcare_candidates.py`) | Claude | – | done |
 | T-01b | Confirm the shortlisted cases with IMERG **half-hourly** rain at the overpass time (daily totals can miss timing), and add one dusty pre-monsoon case (June 2025) for the dust card | ✅ 7 of 15 daily candidates had no rain at overpass time (removed). Recommended: 3 storms (east 2024-09-02, central 2024-08-23, west 2025-08-14) + 1 dry case (east 2025-06-11). Exact files: `outputs/earthcare/download_list.csv` (priority 1 = 12 files) | Claude | T-01 | done |
-| T-02 | Confirm EarthCARE data access (ESA account the team holds, or JAXA G-Portal) and the exact level-2 product names: CPR reflectivity + Doppler, ATLID aerosol layers/extinction, combined target classification | ⬜ | Team (account holder) | – | 30 min |
-| T-03 | Download the 12 priority-1 files in `outputs/earthcare/download_list.csv` (3 products × 4 cases) into `data/raw/earthcare/` | ⬜ | Team (ESA account) | T-01b, T-02 | 30–60 min |
+| T-02 | ✅ done: MAAP offline token + client secret in `.env`. Confirm EarthCARE data access (ESA account the team holds, or JAXA G-Portal) and the exact level-2 product names: CPR reflectivity + Doppler, ATLID aerosol layers/extinction, combined target classification | ⬜ | Team (account holder) | – | 30 min |
+| T-03 | Download the 12 priority-1 files in `outputs/earthcare/download_list.csv` (3 products × 4 cases) into `data/raw/earthcare/` | ✅ 12 files, 39 MB (`scripts/fetch_earthcare.py`) | Claude | T-01b, T-02 | 30–60 min |
 | T-04 | Height-vs-distance cross-sections (CPR reflectivity, Doppler velocity, ATLID dust layer vs cloud); add results to cards M-03 and M-04. Case studies only, never a trend (D-002) | ⬜ | Claude | T-03 | 1–2 h |
 
 ### Layers 2–3: atmosphere and evidence cards
@@ -111,7 +111,7 @@ Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ d
 ### Layer 1: checks and spatial
 | ID | Task | Status | Owner | Depends on | Estimate |
 |---|---|---|---|---|---|
-| T-11 | CHIRPS per-sub-region check of the eastern signal (E-007) | 🟡 downloading | Claude | – | running |
+| T-11 | CHIRPS per-sub-region check of the eastern signal (E-007) | ✅ CHIRPS east +7.9 %/decade, p = 0.026; west/central flat (`outputs/chirps_subregion_check.csv`) | Claude | – | done |
 | T-12 | Daily rain-gauge check of extremes (CHIRPS daily or GHCN stations), to resolve the 2014 tail issue (E-006) | ⬜ | Claude | – | 1 h |
 | T-13 | Pettitt change-point test | ⬜ | Claude | – | 10 min |
 | T-14 | Seasonal decomposition (STL) + 5-year moving averages | ⬜ | Claude | – | 15 min |
