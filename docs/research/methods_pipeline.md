@@ -73,7 +73,7 @@ JJAS rainfall anomaly vs growing-season NDVI anomaly (MODIS MOD13, AppEEARS), wi
 2. ✅ H1 seasonal totals: trend + sensitivity + 2014 check (E-005)
 3. 🟡 H2 extremes: indices + trends done (E-006). Pending: daily cross-check with CHIRPS daily / GHCN gauges because the IMERG daily tail is not homogeneous across 2014
 4. ⬜ Spatial: sub-regions + pixel trend maps with FDR
-5. 🟡 Layers 2–3: MERRA-2 moisture, ascent, convergence, winds, dust done (E-008 to E-011). Next: evidence cards (Layer 3), EarthCARE case studies, MODIS AOD check of the dust trend
+5. 🟡 Layers 2–3: MERRA-2 moisture, ascent, convergence, winds, dust done (E-008 to E-011). Layer 3 evidence cards drafted (`data/app/mechanisms.json`, `docs/research/evidence_cards.md`; M-01 monsoon circulation = medium, others low). Next: science-lead review, EarthCARE case studies, wind shear, soil moisture, MODIS AOD check of the dust trend
 6. ⬜ NDVI add-on
 7. ⬜ App (FastAPI + JS, D-005) reads the processed outputs; slides
 
