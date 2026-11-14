@@ -5,13 +5,13 @@ Generated from `data/app/mechanisms.json` by `scripts/render_evidence_cards.py`.
 
 Region: Sahel box 10-20N, 18W-20E, with provisional W/C/E sub-regions (D-003b) · Period: JJAS 1998-2025
 
-**Detected trend (Layer 1):** Season totals (box): wetting tendency, +3.3 %/decade (p = 0.15). East sub-region: +8.7 %/decade in IMERG (p = 0.055), confirmed by CHIRPS (+7.9 %/decade, p = 0.026); west and central flat in both. Longest dry spell: shortening, robust in the east (-9.6 %/decade, p = 0.001). Extremes: inconclusive (2014 satellite-era change in the daily tail).
+**Detected trend (Layer 1):** Season totals (box): wetting tendency, +3.3 %/decade (p = 0.15). East sub-region: +8.7 %/decade in IMERG (p = 0.055), confirmed by CHIRPS (+7.9 %/decade, p = 0.026); west and central flat in both. Longest dry spell: shortening, robust in the east (-9.6 %/decade, p = 0.001). Extremes: inconclusive (2014 satellite-era change in the daily tail). Spatial PCA finds the same east-west contrast objectively: an east-west see-saw mode trending toward wet-east/dry-west (p = 0.014; E-015).
 
 > Interpretations and confidence levels are **drafts written with AI assistance** for the science lead to review. Evidence IDs point to `docs/research/evidence_ledger.md`. References are still TO-VERIFY. Association is not causation.
 
 | Card | Mechanism | Consistent | Inconsistent | Unclear | Not tested | Confidence |
 |---|---|---|---|---|---|---|
-| M-01 | West African Monsoon circulation (dynamic moisture supply) | 5 | 0 | 1 | 0 | **medium** |
+| M-01 | West African Monsoon circulation (dynamic moisture supply) | 6 | 0 | 1 | 0 | **medium** |
 | M-02 | Atmospheric moisture availability (thermodynamic, Clausius-Clapeyron) | 2 | 2 | 1 | 0 | **low** |
 | M-03 | Organized convection (mesoscale convective systems) | 3 | 1 | 1 | 0 | **low-medium** |
 | M-04 | Dust and aerosol interactions | 2 | 2 | 1 | 0 | **low** |
@@ -26,13 +26,14 @@ A stronger or more northward-reaching monsoon brings more moist air from the Gul
 | Expected if this mechanism matters | What we observe | Status | Evidence |
 |---|---|---|---|
 | Stronger southerly monsoon inflow at 850 hPa | V850 +0.15 m/s per decade, p < 0.001 (all sub-regions) | ✅ consistent | E-008 |
-| Stronger low-level westerlies (monsoon flow) | U850 no significant trend (box p = 0.28; east p = 0.20); strongly positive only in 2024 (+3.1 sigma) | ❔ unclear | E-008, E-011 |
+| Stronger low-level westerlies (monsoon flow) | Year to year: yes. Wet seasons have stronger westerly monsoon inflow along 10-13N (+0.4 m/s, p = 0.04; west p = 0.007; E-016). Over time: no significant trend (box p = 0.28). Strongly positive in 2024 (+3.1 sigma) | ❔ unclear | E-008, E-011, E-016 |
 | More moisture convergence | +0.35 mm/day per decade, p = 0.002; detrended rho with rainfall 0.73 | ✅ consistent | E-008 |
 | More large-scale rising motion | rising motion at 500 hPa up, p = 0.02; rho with rainfall 0.72 | ✅ consistent | E-008 |
 | Rain days up and dry spells shorter | Dry spells shorter in the east (robust, p <= 0.004 in every test); wet days +1.5 %/decade, not significant | ✅ consistent | E-006, E-007 |
 | Moistening not explained by local warming | JJAS T2M flat (box) or cooling (east, -0.29 C/decade); water vapour vs T2M -4.6 %/K | ✅ consistent | E-009 |
+| Wet seasons show the whole monsoon package together (moisture, inflow, convergence, ascent) | Wet minus dry seasons (detrended selection): water vapour +6.5 % (p = 0.011), rising motion p = 0.001, moisture convergence p = 0.006, westerly inflow p = 0.04, cooler and wetter surface; dust not different (p = 0.42) | ✅ consistent | E-016 |
 
-**Supporting evidence:** E-005, E-007, E-008, E-009, E-011 · **Contradicting:** –
+**Supporting evidence:** E-005, E-007, E-008, E-009, E-011, E-015, E-016 · **Contradicting:** –
 
 **Alternative explanations**
 - Remote ocean forcing (Atlantic Multidecadal Variability, north-east Atlantic SST) driving the monsoon change: an upstream cause rather than a competitor (L-23; research_references 2026 #2)
@@ -118,12 +119,12 @@ Saharan dust absorbs and scatters sunlight and can change cloud formation, which
 | Expected if this mechanism matters | What we observe | Status | Evidence |
 |---|---|---|---|
 | Dust load changes over time | Dust optical depth -0.03 per decade (-8 %/decade), p < 0.001 | ✅ consistent | E-010 |
-| Dustier seasons are drier (same season) | Detrended rho with JJAS rainfall -0.12, p = 0.54 | ❌ inconsistent | E-010 |
+| Dustier seasons are drier (same season) | Detrended rho with JJAS rainfall -0.12, p = 0.54; wet vs dry season composites: dust not different (p = 0.42) | ❌ inconsistent | E-010, E-016 |
 | Dust before the season (MAM) precedes drier JJAS | Detrended rho -0.07, p = 0.72 | ❌ inconsistent | – |
 | Dust layer sits at or above cloud level in storms | EarthCARE AC-TC: dust (Saharan Air Layer) at 1-6 km, median 3.0-3.5 km; dry June case: dust over 96 % of the box. In storm cases dust lies BESIDE the storms (dust and rain in the same profile < 1 %). The lidar is blocked under thick storm cloud, so dust inside storms cannot be seen | ❔ unclear | E-012 |
 | Extreme dry vs wet years differ in dust | 2002 +1.5 sigma, 2024 -0.8 sigma | ✅ consistent | E-011 |
 
-**Supporting evidence:** E-011 · **Contradicting:** E-010
+**Supporting evidence:** E-011 · **Contradicting:** E-010, E-016
 
 **Alternative explanations**
 - Reverse causality: wetter, greener seasons emit less dust

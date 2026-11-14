@@ -63,6 +63,15 @@ Rule: every script writes a provenance note (dataset, version, box, period) in i
 
 All of these show **association, not causation**. Every Layer-3 claim gets an evidence card in the ledger with alternatives and a confidence level.
 
+### C+. Multivariate analysis (added 2026-11-15)
+| Method | Status | Where |
+|---|---|---|
+| Spatial PCA / EOF of per-cell JJAS rainfall and dry spells (standardised, 0.5°, North et al. separability) | ✅ E-015 | `scripts/eof_composites.py` |
+| Wet vs dry season composites (detrended tercile selection, Welch tests, maps) | ✅ E-016 | `scripts/eof_composites.py` |
+| Coupled rainfall–atmosphere patterns (MCA / CCA) | ⬜ optional | – |
+| Multiple regression / partial correlation of drivers (≤ 3–4 predictors, collinearity check, leave-years-out validation) | ⬜ optional | – |
+| Variable clustering / rotated PCA for an index without double counting (T-19) | ⬜ optional | – |
+
 ### E. Impact add-on: NDVI (D-011)
 JJAS rainfall anomaly vs growing-season NDVI anomaly (MODIS MOD13, AppEEARS), with 0–2 month lags. "Associated with" language only.
 

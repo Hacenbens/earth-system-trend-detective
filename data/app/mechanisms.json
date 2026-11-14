@@ -3,7 +3,7 @@
   "version": "0.1",
   "region": "Sahel box 10-20N, 18W-20E, with provisional W/C/E sub-regions (D-003b)",
   "period": "JJAS 1998-2025",
-  "detected_trend_summary": "Season totals (box): wetting tendency, +3.3 %/decade (p = 0.15). East sub-region: +8.7 %/decade in IMERG (p = 0.055), confirmed by CHIRPS (+7.9 %/decade, p = 0.026); west and central flat in both. Longest dry spell: shortening, robust in the east (-9.6 %/decade, p = 0.001). Extremes: inconclusive (2014 satellite-era change in the daily tail).",
+  "detected_trend_summary": "Season totals (box): wetting tendency, +3.3 %/decade (p = 0.15). East sub-region: +8.7 %/decade in IMERG (p = 0.055), confirmed by CHIRPS (+7.9 %/decade, p = 0.026); west and central flat in both. Longest dry spell: shortening, robust in the east (-9.6 %/decade, p = 0.001). Extremes: inconclusive (2014 satellite-era change in the daily tail). Spatial PCA finds the same east-west contrast objectively: an east-west see-saw mode trending toward wet-east/dry-west (p = 0.014; E-015).",
   "mechanisms": [
     {
       "mechanism_id": "M-01",
@@ -20,11 +20,12 @@
         },
         {
           "expectation": "Stronger low-level westerlies (monsoon flow)",
-          "observed": "U850 no significant trend (box p = 0.28; east p = 0.20); strongly positive only in 2024 (+3.1 sigma)",
+          "observed": "Year to year: yes. Wet seasons have stronger westerly monsoon inflow along 10-13N (+0.4 m/s, p = 0.04; west p = 0.007; E-016). Over time: no significant trend (box p = 0.28). Strongly positive in 2024 (+3.1 sigma)",
           "status": "unclear",
           "evidence_ids": [
             "E-008",
-            "E-011"
+            "E-011",
+            "E-016"
           ]
         },
         {
@@ -59,6 +60,14 @@
           "evidence_ids": [
             "E-009"
           ]
+        },
+        {
+          "expectation": "Wet seasons show the whole monsoon package together (moisture, inflow, convergence, ascent)",
+          "observed": "Wet minus dry seasons (detrended selection): water vapour +6.5 % (p = 0.011), rising motion p = 0.001, moisture convergence p = 0.006, westerly inflow p = 0.04, cooler and wetter surface; dust not different (p = 0.42)",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-016"
+          ]
         }
       ],
       "supporting_evidence_ids": [
@@ -66,7 +75,9 @@
         "E-007",
         "E-008",
         "E-009",
-        "E-011"
+        "E-011",
+        "E-015",
+        "E-016"
       ],
       "contradictory_evidence_ids": [],
       "alternative_explanations": [
@@ -250,10 +261,11 @@
         },
         {
           "expectation": "Dustier seasons are drier (same season)",
-          "observed": "Detrended rho with JJAS rainfall -0.12, p = 0.54",
+          "observed": "Detrended rho with JJAS rainfall -0.12, p = 0.54; wet vs dry season composites: dust not different (p = 0.42)",
           "status": "inconsistent",
           "evidence_ids": [
-            "E-010"
+            "E-010",
+            "E-016"
           ]
         },
         {
@@ -283,7 +295,8 @@
         "E-011"
       ],
       "contradictory_evidence_ids": [
-        "E-010"
+        "E-010",
+        "E-016"
       ],
       "alternative_explanations": [
         "Reverse causality: wetter, greener seasons emit less dust",
