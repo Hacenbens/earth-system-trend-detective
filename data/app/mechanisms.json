@@ -1,0 +1,410 @@
+{
+  "_about": "Layer 3 (EXPLAIN) mechanism assessments, one record per mechanism, in the shape of the team's layer contracts (section 4, Output: Evidence Ledger). Status values per expected observation: consistent | inconsistent | unclear | not_tested. Numbers come from Layer 1/2 evidence (docs/research/evidence_ledger.md, E-IDs); this file only interprets them. Draft written with AI assistance (Claude Code) for review by the science lead: researcher_interpretation and confidence must be confirmed by a team member. References are literature IDs that are still TO-VERIFY (not yet read).",
+  "version": "0.1",
+  "region": "Sahel box 10-20N, 18W-20E, with provisional W/C/E sub-regions (D-003b)",
+  "period": "JJAS 1998-2025",
+  "detected_trend_summary": "Season totals (box): wetting tendency, +3.3 %/decade (p = 0.15). East sub-region: +8.7 %/decade in IMERG (p = 0.055), confirmed by CHIRPS (+7.9 %/decade, p = 0.026); west and central flat in both. Longest dry spell: shortening, robust in the east (-9.6 %/decade, p = 0.001). Extremes: inconclusive (2014 satellite-era change in the daily tail). Spatial PCA finds the same east-west contrast objectively: an east-west see-saw mode trending toward wet-east/dry-west (p = 0.014; E-015).",
+  "mechanisms": [
+    {
+      "mechanism_id": "M-01",
+      "name": "West African Monsoon circulation (dynamic moisture supply)",
+      "scientific_description": "A stronger or more northward-reaching monsoon brings more moist air from the Gulf of Guinea, increases low-level moisture convergence and large-scale rising motion, and so produces more rain days and shorter dry spells, independently of local warming.",
+      "expected_observations": [
+        {
+          "expectation": "Stronger southerly monsoon inflow at 850 hPa",
+          "observed": "V850 +0.15 m/s per decade, p < 0.001 (all sub-regions)",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-008"
+          ]
+        },
+        {
+          "expectation": "Stronger low-level westerlies (monsoon flow)",
+          "observed": "Year to year: yes. Wet seasons have stronger westerly monsoon inflow along 10-13N (+0.4 m/s, p = 0.04; west p = 0.007; E-016). Over time: no significant trend (box p = 0.28). Strongly positive in 2024 (+3.1 sigma)",
+          "status": "unclear",
+          "evidence_ids": [
+            "E-008",
+            "E-011",
+            "E-016"
+          ]
+        },
+        {
+          "expectation": "More moisture convergence",
+          "observed": "+0.35 mm/day per decade, p = 0.002; detrended rho with rainfall 0.73",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-008"
+          ]
+        },
+        {
+          "expectation": "More large-scale rising motion",
+          "observed": "rising motion at 500 hPa up, p = 0.02; rho with rainfall 0.72",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-008"
+          ]
+        },
+        {
+          "expectation": "Rain days up and dry spells shorter",
+          "observed": "Dry spells shorter in the east (robust, p <= 0.004 in every test); wet days +1.5 %/decade, not significant",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-006",
+            "E-007"
+          ]
+        },
+        {
+          "expectation": "Moistening not explained by local warming",
+          "observed": "JJAS T2M flat (box) or cooling (east, -0.29 C/decade); water vapour vs T2M -4.6 %/K",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-009"
+          ]
+        },
+        {
+          "expectation": "Wet seasons show the whole monsoon package together (moisture, inflow, convergence, ascent)",
+          "observed": "Wet minus dry seasons (detrended selection): water vapour +6.5 % (p = 0.011), rising motion p = 0.001, moisture convergence p = 0.006, westerly inflow p = 0.04, cooler and wetter surface; dust not different (p = 0.42)",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-016"
+          ]
+        },
+        {
+          "expectation": "Moisture inflow and rainfall patterns are spatially coupled",
+          "observed": "MCA (detrended): stronger westerly inflow along 10-13N couples with more rain over the centre-east at 14-17N (r = 0.84, p = 0.002); water vapour explains 57 % of year-to-year rainfall (50 % out of sample); wind and ascent add no information beyond moisture",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-017",
+            "E-018"
+          ]
+        }
+      ],
+      "supporting_evidence_ids": [
+        "E-005",
+        "E-007",
+        "E-008",
+        "E-009",
+        "E-011",
+        "E-015",
+        "E-016",
+        "E-017",
+        "E-018"
+      ],
+      "contradictory_evidence_ids": [],
+      "alternative_explanations": [
+        "Remote ocean forcing (Atlantic Multidecadal Variability, north-east Atlantic SST) driving the monsoon change: an upstream cause rather than a competitor (L-23; research_references 2026 #2)",
+        "Changes in aerosol forcing, e.g. Asian sulfate emissions (L-22)",
+        "Natural decadal variability over a short (28-year) record",
+        "Reanalysis artefact: MERRA-2 circulation trends can follow changes in assimilated observations"
+      ],
+      "researcher_interpretation": "DRAFT for review: the strongest-supported mechanism. Every circulation indicator except the zonal wind moves in the expected direction and tracks rainfall year to year. It explains why dry spells shorten without local warming.",
+      "confidence": "medium",
+      "limitations": [
+        "MERRA-2 is a reanalysis (model-constrained)",
+        "Box-mean winds mix monsoon (south) and Saharan (north) regimes",
+        "No second reanalysis or observed humidity product yet"
+      ],
+      "references": [
+        "L-02",
+        "L-11",
+        "L-17",
+        "L-18",
+        "L-24"
+      ]
+    },
+    {
+      "mechanism_id": "M-02",
+      "name": "Atmospheric moisture availability (thermodynamic, Clausius-Clapeyron)",
+      "scientific_description": "Warmer air can hold about 7 % more water vapour per kelvin. If local warming drives the moistening, water vapour should rise with temperature and heavy-rain intensity should rise faster than totals.",
+      "expected_observations": [
+        {
+          "expectation": "Column water vapour increases",
+          "observed": "+1.67 kg/m2 per decade (+4.1 %/decade), p = 0.001",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-008"
+          ]
+        },
+        {
+          "expectation": "Local near-surface warming in the rainy season",
+          "observed": "No warming (box -0.13 C/decade, p = 0.21; east -0.29, p = 0.02)",
+          "status": "inconsistent",
+          "evidence_ids": [
+            "E-009"
+          ]
+        },
+        {
+          "expectation": "Water vapour scales with temperature at about +7 %/K",
+          "observed": "-4.6 %/K year to year (wetter years are cooler)",
+          "status": "inconsistent",
+          "evidence_ids": [
+            "E-009"
+          ]
+        },
+        {
+          "expectation": "Heavy-rain indices track moisture",
+          "observed": "Detrended rho of Rx1day 0.70, R95p 0.78 with water vapour (p < 0.001)",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-006",
+            "E-008"
+          ]
+        },
+        {
+          "expectation": "Heavy-rain intensity increases over time",
+          "observed": "Rx1day no trend (p = 0.42); SDII +2.3 %/decade but mostly a step at 2014",
+          "status": "unclear",
+          "evidence_ids": [
+            "E-006"
+          ]
+        }
+      ],
+      "supporting_evidence_ids": [
+        "E-008"
+      ],
+      "contradictory_evidence_ids": [
+        "E-009"
+      ],
+      "alternative_explanations": [
+        "Moisture rise supplied by circulation (M-01) rather than local temperature",
+        "Global/ocean warming raising moisture upstream, which local land temperature cannot show"
+      ],
+      "researcher_interpretation": "DRAFT for review: the moisture increase is real in MERRA-2, but local temperature does not explain it. The thermodynamic pathway may act through ocean or global warming upstream, which we have not tested. Extremes respond to moisture year to year, so the missing extreme-rain trend is more likely a data problem (2014 tail) than an absence of effect.",
+      "confidence": "low",
+      "limitations": [
+        "Local T2M is cooled by rain and cloud, so it is a weak test",
+        "A proper scaling test uses event-scale extremes vs temperature or dew point",
+        "Daily extremes not homogeneous across 2014"
+      ],
+      "references": [
+        "L-11",
+        "Africa-pack 1.3-1.6 (scaling papers, citations to find)"
+      ]
+    },
+    {
+      "mechanism_id": "M-03",
+      "name": "Organized convection (mesoscale convective systems)",
+      "scientific_description": "Most Sahel rain falls from organized storm systems. More moisture and instability, and stronger wind shear, make them rain harder; extremes can rise even when storm numbers stay stable.",
+      "expected_observations": [
+        {
+          "expectation": "Stronger mid-level rising motion",
+          "observed": "Up, p = 0.02",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-008"
+          ]
+        },
+        {
+          "expectation": "Extreme rain tracks ascent year to year",
+          "observed": "Detrended rho: Rx1day 0.73, R95p 0.76 with ascent",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-006",
+            "E-008"
+          ]
+        },
+        {
+          "expectation": "Rain per event and extremes increase",
+          "observed": "Rx1day no trend; SDII up but possibly a satellite-era artefact",
+          "status": "unclear",
+          "evidence_ids": [
+            "E-006"
+          ]
+        },
+        {
+          "expectation": "Deep convective cores with strong Doppler updrafts in recent storms",
+          "observed": "EarthCARE CPR, 3 storms (W/C/E): radar echo tops 15.5-17.2 km (95th pct of rainy profiles), up to 18 km (tropopause); air-motion updrafts up to 6-9 m/s at 4-10 km; heavy rain below the 4.7 km melting level. Snapshots of present-day storms, not a trend",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-012"
+          ]
+        },
+        {
+          "expectation": "Stronger wind shear (L-20, L-21)",
+          "observed": "MERRA-2 zonal shear 925-600 hPa (mean ~11 m/s, African Easterly Jet ~ -10 m/s at 600 hPa): no significant trend in any sub-region (central -0.24 m/s per decade, p = 0.07); not associated with rainfall, Rx1day, R95p or SDII year to year (|rho| <= 0.32, n.s.). One exception: a weaker easterly jet goes with larger Rx1day (rho 0.49, p = 0.008; one of many tests)",
+          "status": "inconsistent",
+          "evidence_ids": [
+            "E-013"
+          ]
+        }
+      ],
+      "supporting_evidence_ids": [
+        "E-008",
+        "E-012"
+      ],
+      "contradictory_evidence_ids": [
+        "E-013"
+      ],
+      "alternative_explanations": [
+        "Changes in storm frequency rather than intensity",
+        "Satellite-era changes in how IMERG resolves convective peaks (E-006)",
+        "Shear-driven storm intensification (L-20, L-21, L-03) is not supported for 1998-2025 in MERRA-2: shear did not increase"
+      ],
+      "researcher_interpretation": "DRAFT for review: EarthCARE shows that today's Sahel rain comes from deep organized systems reaching the tropopause with strong updrafts, which is the storm type through which more moisture would produce heavier rain. Whether these storms have become more intense over time cannot be shown by EarthCARE (2024 onwards); that test still depends on the daily rain-gauge check of extremes.",
+      "confidence": "low-medium",
+      "limitations": [
+        "AC-TC labels thin layers near the tropopause as dust: treated as an artefact (only dust below 8 km used)",
+        "EarthCARE covers 2024-2025 only: process illustration, never a trend",
+        "EarthCARE: 4 overpasses, 2024-2025: process illustration only",
+        "Needs daily rain-gauge check of extremes"
+      ],
+      "references": [
+        "L-03",
+        "L-11",
+        "L-18",
+        "L-20",
+        "L-21",
+        "L-25"
+      ]
+    },
+    {
+      "mechanism_id": "M-04",
+      "name": "Dust and aerosol interactions",
+      "scientific_description": "Saharan dust absorbs and scatters sunlight and can change cloud formation, which may suppress or shift rainfall. Its effect depends on altitude, particle type and cloud regime.",
+      "expected_observations": [
+        {
+          "expectation": "Dust load changes over time",
+          "observed": "Dust optical depth -0.03 per decade (-8 %/decade), p < 0.001",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-010"
+          ]
+        },
+        {
+          "expectation": "Dustier seasons are drier (same season)",
+          "observed": "Detrended rho with JJAS rainfall -0.12, p = 0.54; wet vs dry season composites: dust not different (p = 0.42); coupled-pattern analysis not significant (p = 0.27); no effect once moisture is held fixed",
+          "status": "inconsistent",
+          "evidence_ids": [
+            "E-010",
+            "E-016",
+            "E-017",
+            "E-018"
+          ]
+        },
+        {
+          "expectation": "Dust before the season (MAM) precedes drier JJAS",
+          "observed": "Detrended rho -0.07, p = 0.72",
+          "status": "inconsistent",
+          "evidence_ids": []
+        },
+        {
+          "expectation": "Dust layer sits at or above cloud level in storms",
+          "observed": "EarthCARE AC-TC: dust (Saharan Air Layer) at 1-6 km, median 3.0-3.5 km; dry June case: dust over 96 % of the box. In storm cases dust lies BESIDE the storms (dust and rain in the same profile < 1 %). The lidar is blocked under thick storm cloud, so dust inside storms cannot be seen",
+          "status": "unclear",
+          "evidence_ids": [
+            "E-012"
+          ]
+        },
+        {
+          "expectation": "Extreme dry vs wet years differ in dust",
+          "observed": "2002 +1.5 sigma, 2024 -0.8 sigma",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-011"
+          ]
+        }
+      ],
+      "supporting_evidence_ids": [
+        "E-011"
+      ],
+      "contradictory_evidence_ids": [
+        "E-010",
+        "E-016",
+        "E-017",
+        "E-018"
+      ],
+      "alternative_explanations": [
+        "Reverse causality: wetter, greener seasons emit less dust",
+        "Assimilation artefact in MERRA-2 aerosols (MODIS AOD assimilated; 2025 anomaly -4 sigma)",
+        "Remote aerosol forcing (Asian sulfate, L-22) acting through circulation"
+      ],
+      "researcher_interpretation": "DRAFT for review: the dust decline is a trend in the reanalysis, but it does not track rainfall from year to year. At most a secondary player, and possibly a consequence of wetter conditions. EarthCARE confirms a deep Saharan dust layer (1-6 km) next to and north of the storms, but cannot see inside them, so the dust-storm interaction itself stays untested.",
+      "confidence": "low",
+      "limitations": [
+        "2025 MERRA-2 dust value -4 sigma (likely artefact; trend holds without 2025)",
+        "AC-TC labels thin layers near the tropopause as dust: treated as an artefact (only dust below 8 km used)",
+        "Column AOD says nothing about dust altitude",
+        "EarthCARE: 4 overpasses, 2024-2025: process illustration only",
+        "Not yet checked against MODIS AOD directly"
+      ],
+      "references": [
+        "L-22",
+        "Africa-pack 2.1-2.7 (citations to find)"
+      ]
+    },
+    {
+      "mechanism_id": "M-05",
+      "name": "Soil moisture and surface energy balance",
+      "scientific_description": "Wet soils evaporate more and stay cooler, which can feed moisture back to the atmosphere and change where new storms form; soil-moisture contrasts can strengthen storm systems through wind shear.",
+      "expected_observations": [
+        {
+          "expectation": "Cooler surface in wetter seasons/regions",
+          "observed": "Wetter years cooler (rho -0.53); east cooling -0.29 C/decade; the cooling link survives after holding moisture fixed (partial rho -0.39 box, -0.51 east) and is spatially coupled with rain (MCA r = 0.76)",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-009",
+            "E-017",
+            "E-018"
+          ]
+        },
+        {
+          "expectation": "Shorter dry spells where soils stay moist",
+          "observed": "Wetter-soil seasons have shorter dry spells (east rho -0.59, p = 0.001), but soil wetness follows rainfall by construction; June soil moisture does NOT foreshadow July-September rain (rho 0.17, p = 0.40)",
+          "status": "unclear",
+          "evidence_ids": [
+            "E-007",
+            "E-014"
+          ]
+        },
+        {
+          "expectation": "Soil moisture increases in the rainy season",
+          "observed": "MERRA-2 topsoil wetness +0.027 per decade (box, p = 0.001), east +0.032 (+11 %/decade, p < 0.001); root zone also up everywhere. Partly by construction: MERRA-2 land is forced by observation-corrected rainfall",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-014"
+          ]
+        },
+        {
+          "expectation": "Greener vegetation (NDVI add-on, D-011)",
+          "observed": "Not fetched",
+          "status": "not_tested",
+          "evidence_ids": []
+        },
+        {
+          "expectation": "More energy goes into evaporation, cooling the surface",
+          "observed": "Evaporative fraction rises (box +0.027 per decade, p = 0.002; east +0.040, p < 0.001) and is strongly anti-correlated with near-surface temperature (rho -0.65 to -0.86, p < 0.001): wetter land evaporates more and stays cooler",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-014",
+            "E-009"
+          ]
+        }
+      ],
+      "supporting_evidence_ids": [
+        "E-009",
+        "E-014",
+        "E-018"
+      ],
+      "contradictory_evidence_ids": [],
+      "alternative_explanations": [
+        "Surface cooling from clouds and rain, not soil moisture",
+        "Land-use and vegetation change"
+      ],
+      "researcher_interpretation": "DRAFT for review: the land surface responds as expected to a wetter rainy season: wetter soils, more evaporation, cooler surface. This explains the surface cooling in the east (E-009) without local warming. Whether the land feeds rain back (a feedback) is not shown: MERRA-2 soil moisture is driven by observed rainfall, and early-season soil moisture does not predict later rain.",
+      "confidence": "low",
+      "limitations": [
+        "MERRA-2 land is forced by observation-corrected precipitation, so soil-rain links are partly circular",
+        "MERRA-2 LAI is a prescribed climatology (no trend information)",
+        "Box/sub-region means hide the soil-moisture gradients that matter for storms (L-20)",
+        "NDVI not yet fetched"
+      ],
+      "references": [
+        "L-19",
+        "L-20",
+        "L-21",
+        "L-36",
+        "L-39"
+      ]
+    }
+  ]
+}

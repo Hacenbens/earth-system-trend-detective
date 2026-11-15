@@ -13,3 +13,5 @@ matplotlib
 plotly
 jupyterlab
 ipykernel
+fastapi
+uvicorn[standard]

@@ -26,16 +26,26 @@ outputs/figures/    charts and maps for the app and slides
    uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt
    # or: python -m venv .venv && .venv/bin/pip install -r requirements.txt
    ```
-2. **NASA Earthdata login** (needed for IMERG): create an account at https://urs.earthdata.nasa.gov, then put your credentials in `~/.netrc`:
+2. **NASA Earthdata login** (needed for IMERG): create an account at https://urs.earthdata.nasa.gov, then:
+   ```bash
+   cp .env.example .env    # then fill in EARTHDATA_USERNAME and EARTHDATA_PASSWORD in .env
+   chmod 600 .env
    ```
-   machine urs.earthdata.nasa.gov login <your_user> password <your_password>
-   ```
-   (`chmod 600 ~/.netrc`). Never commit credentials. `.netrc` and `.env` are git-ignored.
+   `.env` is git-ignored. Never commit credentials. The scripts read `.env` first, then fall back to `~/.netrc`
+   (`machine urs.earthdata.nasa.gov login <user> password <pass>`) if you prefer that.
 3. **Reproduce the data** (outputs go to `data/processed/`):
    ```bash
    .venv/bin/python scripts/fetch_sahel_series.py      # IMERG V07 Final monthly + Late daily, Sahel box, 2024–2026
    .venv/bin/python -u scripts/fetch_chirps_sahel.py   # CHIRPS v3 JJAS 1998–2026 (independent cross-check, no login)
    ```
+
+## Run the app backend
+```bash
+make warehouse        # build data/warehouse/trend_detective.sqlite from the committed CSVs (~10 s)
+make api              # API on http://127.0.0.1:8000, interactive docs at http://127.0.0.1:8000/docs
+```
+The API needs no login for reading and running analyses (judges get a public link), with rate limits, a body-size limit and a storage cap. `POST /explain` (expert confirmation) needs an `X-API-Key` header when `TEAM_API_KEY` is set; ask the team lead for the key. Set it before exposing the server (`make api HOST=0.0.0.0`). Details: `docs/app/backend_architecture.md` §4b.
+Endpoints follow `docs/app/api_contract.md`; data model: `docs/app/data_model.md`; architecture (clean architecture, SOLID, Result pattern, logging): `docs/app/backend_architecture.md`. Tests: `make test`, `make smoke` (server running), `make smoke-protections`.
 
 ## Team rules
 - **Read `docs/decisions/DECISIONS.md` first.** Change scope only via a new decision entry. Never edit an accepted one.

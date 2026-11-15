@@ -1,0 +1,5 @@
+field,label,mode1_squared_cov_fraction_pct,mode2_pct,expansion_coef_correlation_r,monte_carlo_p_sv1,rain_map_mean_corr,field_map_mean_corr
+TQV,column water vapour,94.9,2.6,0.82,0.002,0.4,0.72
+U850,westerly wind 850 hPa,76.5,10.3,0.84,0.002,0.39,0.37
+DUEXTTAU,dust optical depth,59.2,19.5,0.54,0.265,0.15,-0.35
+T2M,near-surface temperature,77.1,7.4,0.76,0.002,0.34,-0.45

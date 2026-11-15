@@ -1,0 +1,4 @@
+region,mean_jjas_mm,total_pct_per_decade,total_mk_p,cdd_mean_days,cdd_pct_per_decade,cdd_mk_p,share_of_box_rain_pct
+West (18°W–5°W),575.320,1.857,0.374,20.090,0.976,0.953,44.566
+Central (5°W–10°E),425.036,1.243,0.418,15.414,-6.366,0.061,37.990
+East (10°E–20°E),292.757,8.736,0.055,28.561,-9.573,0.001,17.444

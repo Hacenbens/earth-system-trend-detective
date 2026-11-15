@@ -1,0 +1,7 @@
+variable,mode,explained_pct,north_err_pct,pc_trend_sd_per_decade,pc_trend_mk_p,map_mean_corr_west,map_mean_corr_central,map_mean_corr_east,map_mean_corr_south_10_15N,map_mean_corr_north_15_20N,pc_corr_rain_sahel,pc_corr_rain_west,pc_corr_rain_central,pc_corr_rain_east
+total,1,30.2,8.1,0.42,0.1186,0.48,0.49,0.59,0.53,0.49,0.97,0.84,0.89,0.88
+total,2,9.4,2.5,-0.43,0.0135,0.25,0.07,-0.28,0.02,0.06,0.12,0.37,0.16,-0.39
+total,3,6.4,1.7,-0.42,0.101,-0.05,0.16,-0.06,0.11,-0.05,0.12,0.05,0.32,-0.04
+cdd,1,17.7,4.7,-0.43,0.0505,0.31,0.39,0.37,0.26,0.45,-0.52,-0.58,-0.36,-0.41
+cdd,2,11.3,3.0,0.59,0.0032,0.4,-0.01,-0.21,0.13,0.02,-0.03,-0.18,-0.06,0.25
+cdd,3,6.7,1.8,0.01,0.9527,0.08,-0.14,0.14,-0.09,0.1,-0.28,-0.3,-0.29,-0.13

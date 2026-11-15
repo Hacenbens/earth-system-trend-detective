@@ -8,8 +8,15 @@ data/processed/*
 *.HDF5
 .netrc
 .env
+.env.*
+!.env.example
 __pycache__/
 .ipynb_checkpoints/
 .venv/
 *.tif
 *.tiff
+outputs/earthcare/catalogue_cache/
+# warehouse is rebuilt from committed processed CSVs: make warehouse
+data/warehouse/
+# API runtime data
+data/app/investigations/

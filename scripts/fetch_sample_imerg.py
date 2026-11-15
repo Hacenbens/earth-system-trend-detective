@@ -3,7 +3,7 @@
 Drafted with AI assistance (Claude Code). See docs/submission/si_usage.md.
 
 Usage:  .venv/bin/python scripts/fetch_sample_imerg.py [YYYY-MM]   (default 2024-08, peak Sahel rain)
-Needs:  NASA Earthdata credentials in ~/.netrc (machine urs.earthdata.nasa.gov).
+Needs:  NASA Earthdata credentials in .env (see .env.example) or ~/.netrc.
 """
 import sys
 import calendar
@@ -21,9 +21,10 @@ month = sys.argv[1] if len(sys.argv) > 1 else "2024-08"
 y, m = map(int, month.split("-"))
 last = calendar.monthrange(y, m)[1]
 
-import os
-# Credentials: EARTHDATA_USERNAME / EARTHDATA_PASSWORD env vars (one-off, nothing stored), else ~/.netrc
-earthaccess.login(strategy="environment" if os.environ.get("EARTHDATA_USERNAME") else "netrc")
+sys.path.insert(0, str(ROOT / "src"))
+from earth_detective.auth import login  # noqa: E402
+
+login()  # .env (see .env.example) or ~/.netrc
 res = earthaccess.search_data(short_name="GPM_3IMERGM", version="07",
                               temporal=(f"{month}-01", f"{month}-{last:02d}"))
 print(f"granules found: {len(res)}")

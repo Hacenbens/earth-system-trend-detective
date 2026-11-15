@@ -1,0 +1,34 @@
+variable,label,unit,region,wet_mean,dry_mean,difference,difference_pct,welch_p
+TQV,Column water vapour,kg/m²,sahel,42.023,39.458,2.5648,6.5,0.011344
+TQV,Column water vapour,kg/m²,west,45.281,42.844,2.4375,5.6892,0.0059696
+TQV,Column water vapour,kg/m²,central,41.597,39.236,2.3612,6.0178,0.018946
+TQV,Column water vapour,kg/m²,east,38.412,35.383,3.0294,8.5619,0.013448
+mfc,Moisture convergence,mm/day,sahel,1.0068,0.36951,0.63724,172.45,0.0062228
+mfc,Moisture convergence,mm/day,west,2.3503,1.3805,0.96983,70.253,0.0032044
+mfc,Moisture convergence,mm/day,central,0.43041,-0.020741,0.45116,2175.1,0.018871
+mfc,Moisture convergence,mm/day,east,0.0778,-0.40971,0.48751,118.99,0.093557
+ascent,Rising motion 500 hPa (−ω×100),cPa/s,sahel,1.609,0.79004,0.81898,103.66,0.0010566
+ascent,Rising motion 500 hPa (−ω×100),cPa/s,west,2.6529,1.7317,0.92119,53.194,0.0057812
+ascent,Rising motion 500 hPa (−ω×100),cPa/s,central,1.2602,0.52433,0.73583,140.34,0.0032665
+ascent,Rising motion 500 hPa (−ω×100),cPa/s,east,0.73232,-0.076446,0.80877,1058,0.0053572
+U850,Westerly wind 850 hPa,m/s,sahel,-1.1775,-1.5824,0.40487,25.586,0.036577
+U850,Westerly wind 850 hPa,m/s,west,-1.2717,-1.8469,0.5752,31.143,0.0067825
+U850,Westerly wind 850 hPa,m/s,central,-1.0795,-1.3167,0.23715,18.011,0.20343
+U850,Westerly wind 850 hPa,m/s,east,-1.2237,-1.6543,0.43059,26.028,0.050942
+V850,Southerly wind 850 hPa,m/s,sahel,0.14209,0.016247,0.12584,774.53,0.10139
+V850,Southerly wind 850 hPa,m/s,west,-0.13014,-0.33055,0.2004,60.628,0.0040465
+V850,Southerly wind 850 hPa,m/s,central,0.42882,0.42307,0.0057462,1.3582,0.94514
+V850,Southerly wind 850 hPa,m/s,east,0.063471,-0.13876,0.20223,145.74,0.15054
+DUEXTTAU,Dust optical depth,–,sahel,0.36473,0.37647,-0.011748,-3.1205,0.42106
+DUEXTTAU,Dust optical depth,–,west,0.36266,0.36599,-0.0033309,-0.91009,0.82252
+DUEXTTAU,Dust optical depth,–,central,0.35082,0.36415,-0.013324,-3.6589,0.40932
+DUEXTTAU,Dust optical depth,–,east,0.386,0.40615,-0.020145,-4.9601,0.25073
+GWETTOP,Topsoil wetness,0–1,sahel,0.40911,0.36826,0.040856,11.095,0.017636
+GWETTOP,Topsoil wetness,0–1,west,0.50878,0.46962,0.039158,8.3381,0.062968
+GWETTOP,Topsoil wetness,0–1,central,0.38429,0.34619,0.038103,11.007,0.014353
+GWETTOP,Topsoil wetness,0–1,east,0.31583,0.26881,0.047021,17.492,0.019337
+T2M,Near-surface temperature,°C,sahel,29.748,30.229,-0.48144,-1.5926,0.017995
+T2M,Near-surface temperature,°C,west,28.945,29.354,-0.40932,-1.3944,0.047787
+T2M,Near-surface temperature,°C,central,29.914,30.42,-0.5056,-1.6621,0.018645
+T2M,Near-surface temperature,°C,east,30.512,31.053,-0.54086,-1.7417,0.025711
+rain_total,IMERG JJAS rainfall,mm,sahel,488.62,401.86,86.757,21.589,9.1252e-07
