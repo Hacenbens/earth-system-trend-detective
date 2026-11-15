@@ -150,6 +150,6 @@ Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ d
 | T-26 | Front-end against the contract's mock JSON (region picker, Layer 1 result, regional comparison) | ⬜ | Front-end | – | – |
 | T-27 | Layers 2–5 endpoints (investigate, mechanisms from `data/app/mechanisms.json`, project, qualitative solve) | ⬜ | Backend B | T-25 | 2–3 h |
 | T-28 | Report endpoint (JSON/CSV/HTML) | ⬜ | Integration | T-25 | 1 h |
-| T-29 | Slides (≤ 7) or 30-second video | ⬜ | Design lead | results | – |
+| T-29 | Slides (≤ 7) or 30-second video | 🟡 content drafted (`docs/submission/slides_content.md`): 7 slides + 30 s video script; design + app screenshot pending | Design lead | results, T-25 | – |
 | T-30 | Confirm the submission cut-off; make the repo public before submitting; final SI-use log check | ⬜ | Team lead | – | – |
 | T-31 | Housekeeping: tick the outdated open questions in `DECISIONS.md` (Earthdata login works; D-007 indices chosen) | ⬜ | Claude | – | 5 min |
