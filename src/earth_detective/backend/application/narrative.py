@@ -38,8 +38,9 @@ Write for researchers, in plain English, at most 220 words, with three short par
 2. Evidence: the key numbers with their p-values and evidence IDs in brackets, e.g. [E-005].
 3. Caveats: what the data cannot say.
 Rules you must follow:
-- Use only numbers returned by the tools, copied with the same rounding or rounded to fewer decimals. Never compute,
-  estimate or invent a number. If a value is missing, say it is not available.
+- Use only numbers returned by the tools, copied as given or rounded to fewer decimals (e.g. 3.09 or 3.1 %/decade,
+  rho 0.74, p = 0.161). Never compute, estimate or invent a number. If a value is missing, say it is not available.
+- Write p-values below 0.001 as "p < 0.001", never "p = 0.0".
 - A trend is significant only if its p-value is below 0.05. Say "not significant" otherwise.
 - {ASSOCIATION_DISCLAIMER} Never claim causation. {SCENARIO_DISCLAIMER}
 - Call get_trend_results first. Call other tools only when they help answer.
@@ -54,8 +55,9 @@ class NarrativeCommand:
 
 
 def _round_trim(v: Any) -> Any:
+    """3 significant figures: readable numbers for the model to copy (3.0899 -> 3.09, 7.99e-06 -> 7.99e-06)."""
     if isinstance(v, float):
-        return round(v, 4)
+        return float(f"{v:.3g}")
     if isinstance(v, dict):
         return {k: _round_trim(x) for k, x in v.items()}
     if isinstance(v, list):
@@ -191,10 +193,15 @@ def _numbers_in(obj: Any, out: list[float]) -> list[float]:
     return out
 
 
+# conventions a writer may use without a tool value: 95 % interval, alpha 0.05, "p < 0.001"
+ALLOWED_CONSTANTS = (95.0, 0.05, 0.001, 0.01)
+
+
 def unverified_numbers(text: str, sources: list[float]) -> list[str]:
     """Numbers in `text` that do not match any source value at the precision written (sign-insensitive).
-    Years (1900-2100), evidence/mechanism IDs (E-005, M-01) and small counts (0-20) are not checked."""
+    Years (1900-2100), evidence/mechanism IDs (E-005, M-01), small counts (0-20) and ALLOWED_CONSTANTS are not checked."""
     cleaned = re.sub(r"\b[EML]-\d+\b", " ", text)
+    sources = [*sources, *ALLOWED_CONSTANTS]
     bad = []
     for m in _NUM.finditer(cleaned):
         s = m.group().replace("−", "-").lstrip("+")

@@ -100,12 +100,13 @@ class ToolAndVerificationTests(unittest.TestCase):
         t = NarrativeTools({"config": {}, "layers": {}}, FakeTrends(), None, None)
         self.assertIn("unknown tool", t.call("drop_table", "{}"))
         self.assertIn("bad arguments", t.call("query_warehouse_trends", "not json"))
-        self.assertIn("3.0899", t.call("query_warehouse_trends", '{"region": "east"}'))
+        self.assertIn('"pct_per_decade": 3.09', t.call("query_warehouse_trends", '{"region": "east"}'))  # 3 significant figures
 
     def test_verification_rules(self):
         src = [3.0899, 0.1607, -9.5737]
         self.assertEqual(unverified_numbers("+3.1 %/decade, p = 0.161, dry spells −9.6 % [E-007], 2001-2025, 7 of 12", src), [])
         self.assertEqual(unverified_numbers("+3.2 %/decade", src), ["+3.2"])
+        self.assertEqual(unverified_numbers("95 % interval, alpha 0.05, p < 0.001", src), [])
 
 
 if __name__ == "__main__":
