@@ -68,9 +68,9 @@ All of these show **association, not causation**. Every Layer-3 claim gets an ev
 |---|---|---|
 | Spatial PCA / EOF of per-cell JJAS rainfall and dry spells (standardised, 0.5°, North et al. separability) | ✅ E-015 | `scripts/eof_composites.py` |
 | Wet vs dry season composites (detrended tercile selection, Welch tests, maps) | ✅ E-016 | `scripts/eof_composites.py` |
-| Coupled rainfall–atmosphere patterns (MCA / CCA) | ⬜ optional | – |
-| Multiple regression / partial correlation of drivers (≤ 3–4 predictors, collinearity check, leave-years-out validation) | ⬜ optional | – |
-| Variable clustering / rotated PCA for an index without double counting (T-19) | ⬜ optional | – |
+| Coupled rainfall–atmosphere patterns (MCA, Monte Carlo) | ✅ E-017 | `scripts/multivariate_extended.py` |
+| Multiple regression / partial correlation of drivers (≤ 3 predictors, VIF, leave-one-year-out CV) | ✅ E-018 | `scripts/multivariate_extended.py` |
+| Variable clustering / rotated PCA for an index without double counting (T-19) | ✅ 2 clusters (wetness/intensity vs dry spell); index v2 = z(PRCPTOT) − z(CDD), 2 components; trend +0.38 sd/decade (p = 0.09); r = 0.98 with prototype v1 | `outputs/eda/indicator_clusters.csv`, `outputs/eda/index_v2.csv` |
 
 ### E. Impact add-on: NDVI (D-011)
 JJAS rainfall anomaly vs growing-season NDVI anomaly (MODIS MOD13, AppEEARS), with 0–2 month lags. "Associated with" language only.
@@ -132,7 +132,7 @@ Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ d
 | ID | Task | Status | Owner |
 |---|---|---|---|
 | T-18 | D-003b: sub-region borders (provisional W 18°W–5°W, C 5°W–10°E, E 10°E–20°E) | ⬜ | Team |
-| T-19 | Index design: amount + dry spell, or PCA weights (the prototype double-counts) | ⬜ | Team |
+| T-19 | Index design: amount + dry spell, or PCA weights (the prototype double-counts) | 🟡 proposal ready: index v2 = mean of z(season total) and −z(longest dry spell), one per objective cluster (`outputs/eda/index_v2.csv`); team to approve | Team |
 | T-20 | Flagship story: eastern Sahel "more regular rainy season" (pending T-11) | ⬜ | Team |
 | T-21 | Use CloudSat/CALIPSO as fallback if EarthCARE access fails | ✖ not needed (EarthCARE worked, T-03) | Team |
 

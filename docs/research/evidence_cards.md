@@ -11,7 +11,7 @@ Region: Sahel box 10-20N, 18W-20E, with provisional W/C/E sub-regions (D-003b) �
 
 | Card | Mechanism | Consistent | Inconsistent | Unclear | Not tested | Confidence |
 |---|---|---|---|---|---|---|
-| M-01 | West African Monsoon circulation (dynamic moisture supply) | 6 | 0 | 1 | 0 | **medium** |
+| M-01 | West African Monsoon circulation (dynamic moisture supply) | 7 | 0 | 1 | 0 | **medium** |
 | M-02 | Atmospheric moisture availability (thermodynamic, Clausius-Clapeyron) | 2 | 2 | 1 | 0 | **low** |
 | M-03 | Organized convection (mesoscale convective systems) | 3 | 1 | 1 | 0 | **low-medium** |
 | M-04 | Dust and aerosol interactions | 2 | 2 | 1 | 0 | **low** |
@@ -32,8 +32,9 @@ A stronger or more northward-reaching monsoon brings more moist air from the Gul
 | Rain days up and dry spells shorter | Dry spells shorter in the east (robust, p <= 0.004 in every test); wet days +1.5 %/decade, not significant | ✅ consistent | E-006, E-007 |
 | Moistening not explained by local warming | JJAS T2M flat (box) or cooling (east, -0.29 C/decade); water vapour vs T2M -4.6 %/K | ✅ consistent | E-009 |
 | Wet seasons show the whole monsoon package together (moisture, inflow, convergence, ascent) | Wet minus dry seasons (detrended selection): water vapour +6.5 % (p = 0.011), rising motion p = 0.001, moisture convergence p = 0.006, westerly inflow p = 0.04, cooler and wetter surface; dust not different (p = 0.42) | ✅ consistent | E-016 |
+| Moisture inflow and rainfall patterns are spatially coupled | MCA (detrended): stronger westerly inflow along 10-13N couples with more rain over the centre-east at 14-17N (r = 0.84, p = 0.002); water vapour explains 57 % of year-to-year rainfall (50 % out of sample); wind and ascent add no information beyond moisture | ✅ consistent | E-017, E-018 |
 
-**Supporting evidence:** E-005, E-007, E-008, E-009, E-011, E-015, E-016 · **Contradicting:** –
+**Supporting evidence:** E-005, E-007, E-008, E-009, E-011, E-015, E-016, E-017, E-018 · **Contradicting:** –
 
 **Alternative explanations**
 - Remote ocean forcing (Atlantic Multidecadal Variability, north-east Atlantic SST) driving the monsoon change: an upstream cause rather than a competitor (L-23; research_references 2026 #2)
@@ -119,12 +120,12 @@ Saharan dust absorbs and scatters sunlight and can change cloud formation, which
 | Expected if this mechanism matters | What we observe | Status | Evidence |
 |---|---|---|---|
 | Dust load changes over time | Dust optical depth -0.03 per decade (-8 %/decade), p < 0.001 | ✅ consistent | E-010 |
-| Dustier seasons are drier (same season) | Detrended rho with JJAS rainfall -0.12, p = 0.54; wet vs dry season composites: dust not different (p = 0.42) | ❌ inconsistent | E-010, E-016 |
+| Dustier seasons are drier (same season) | Detrended rho with JJAS rainfall -0.12, p = 0.54; wet vs dry season composites: dust not different (p = 0.42); coupled-pattern analysis not significant (p = 0.27); no effect once moisture is held fixed | ❌ inconsistent | E-010, E-016, E-017, E-018 |
 | Dust before the season (MAM) precedes drier JJAS | Detrended rho -0.07, p = 0.72 | ❌ inconsistent | – |
 | Dust layer sits at or above cloud level in storms | EarthCARE AC-TC: dust (Saharan Air Layer) at 1-6 km, median 3.0-3.5 km; dry June case: dust over 96 % of the box. In storm cases dust lies BESIDE the storms (dust and rain in the same profile < 1 %). The lidar is blocked under thick storm cloud, so dust inside storms cannot be seen | ❔ unclear | E-012 |
 | Extreme dry vs wet years differ in dust | 2002 +1.5 sigma, 2024 -0.8 sigma | ✅ consistent | E-011 |
 
-**Supporting evidence:** E-011 · **Contradicting:** E-010, E-016
+**Supporting evidence:** E-011 · **Contradicting:** E-010, E-016, E-017, E-018
 
 **Alternative explanations**
 - Reverse causality: wetter, greener seasons emit less dust
@@ -150,13 +151,13 @@ Wet soils evaporate more and stay cooler, which can feed moisture back to the at
 
 | Expected if this mechanism matters | What we observe | Status | Evidence |
 |---|---|---|---|
-| Cooler surface in wetter seasons/regions | Wetter years cooler (rho -0.53); east cooling -0.29 C/decade | ✅ consistent | E-009 |
+| Cooler surface in wetter seasons/regions | Wetter years cooler (rho -0.53); east cooling -0.29 C/decade; the cooling link survives after holding moisture fixed (partial rho -0.39 box, -0.51 east) and is spatially coupled with rain (MCA r = 0.76) | ✅ consistent | E-009, E-017, E-018 |
 | Shorter dry spells where soils stay moist | Wetter-soil seasons have shorter dry spells (east rho -0.59, p = 0.001), but soil wetness follows rainfall by construction; June soil moisture does NOT foreshadow July-September rain (rho 0.17, p = 0.40) | ❔ unclear | E-007, E-014 |
 | Soil moisture increases in the rainy season | MERRA-2 topsoil wetness +0.027 per decade (box, p = 0.001), east +0.032 (+11 %/decade, p < 0.001); root zone also up everywhere. Partly by construction: MERRA-2 land is forced by observation-corrected rainfall | ✅ consistent | E-014 |
 | Greener vegetation (NDVI add-on, D-011) | Not fetched | ⬜ not tested | – |
 | More energy goes into evaporation, cooling the surface | Evaporative fraction rises (box +0.027 per decade, p = 0.002; east +0.040, p < 0.001) and is strongly anti-correlated with near-surface temperature (rho -0.65 to -0.86, p < 0.001): wetter land evaporates more and stays cooler | ✅ consistent | E-014, E-009 |
 
-**Supporting evidence:** E-009, E-014 · **Contradicting:** –
+**Supporting evidence:** E-009, E-014, E-018 · **Contradicting:** –
 
 **Alternative explanations**
 - Surface cooling from clouds and rain, not soil moisture

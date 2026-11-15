@@ -68,6 +68,15 @@
           "evidence_ids": [
             "E-016"
           ]
+        },
+        {
+          "expectation": "Moisture inflow and rainfall patterns are spatially coupled",
+          "observed": "MCA (detrended): stronger westerly inflow along 10-13N couples with more rain over the centre-east at 14-17N (r = 0.84, p = 0.002); water vapour explains 57 % of year-to-year rainfall (50 % out of sample); wind and ascent add no information beyond moisture",
+          "status": "consistent",
+          "evidence_ids": [
+            "E-017",
+            "E-018"
+          ]
         }
       ],
       "supporting_evidence_ids": [
@@ -77,7 +86,9 @@
         "E-009",
         "E-011",
         "E-015",
-        "E-016"
+        "E-016",
+        "E-017",
+        "E-018"
       ],
       "contradictory_evidence_ids": [],
       "alternative_explanations": [
@@ -261,11 +272,13 @@
         },
         {
           "expectation": "Dustier seasons are drier (same season)",
-          "observed": "Detrended rho with JJAS rainfall -0.12, p = 0.54; wet vs dry season composites: dust not different (p = 0.42)",
+          "observed": "Detrended rho with JJAS rainfall -0.12, p = 0.54; wet vs dry season composites: dust not different (p = 0.42); coupled-pattern analysis not significant (p = 0.27); no effect once moisture is held fixed",
           "status": "inconsistent",
           "evidence_ids": [
             "E-010",
-            "E-016"
+            "E-016",
+            "E-017",
+            "E-018"
           ]
         },
         {
@@ -296,7 +309,9 @@
       ],
       "contradictory_evidence_ids": [
         "E-010",
-        "E-016"
+        "E-016",
+        "E-017",
+        "E-018"
       ],
       "alternative_explanations": [
         "Reverse causality: wetter, greener seasons emit less dust",
@@ -324,10 +339,12 @@
       "expected_observations": [
         {
           "expectation": "Cooler surface in wetter seasons/regions",
-          "observed": "Wetter years cooler (rho -0.53); east cooling -0.29 C/decade",
+          "observed": "Wetter years cooler (rho -0.53); east cooling -0.29 C/decade; the cooling link survives after holding moisture fixed (partial rho -0.39 box, -0.51 east) and is spatially coupled with rain (MCA r = 0.76)",
           "status": "consistent",
           "evidence_ids": [
-            "E-009"
+            "E-009",
+            "E-017",
+            "E-018"
           ]
         },
         {
@@ -365,7 +382,8 @@
       ],
       "supporting_evidence_ids": [
         "E-009",
-        "E-014"
+        "E-014",
+        "E-018"
       ],
       "contradictory_evidence_ids": [],
       "alternative_explanations": [

@@ -1,0 +1,19 @@
+region,response,model,r2,loyo_cv_r2,beta_TQV,p_TQV,max_vif,beta_U850,beta_DUEXTTAU,p_U850,p_DUEXTTAU,beta_ascent,beta_shear,p_ascent,p_shear
+sahel,rain_total,moisture only,0.57,0.5,0.75,0.0,1.0,,,,,,,,
+sahel,rain_total,moisture + inflow + dust,0.63,0.5,0.8,0.0,2.18,-0.05,-0.26,0.775,0.059,,,,
+sahel,rain_total,ascent + shear + dust,0.64,0.51,,,1.5,,-0.22,,0.107,0.84,-0.17,0.0,0.254
+sahel,dry_spell,moisture only,0.3,0.16,-0.55,0.002,1.0,,,,,,,,
+sahel,dry_spell,moisture + inflow + dust,0.35,0.13,-0.75,0.004,2.18,0.27,0.17,0.269,0.321,,,,
+sahel,dry_spell,ascent + shear + dust,0.34,0.1,,,1.5,,0.06,,0.739,-0.65,0.23,0.002,0.259
+east,rain_total,moisture only,0.51,0.44,0.72,0.0,1.0,,,,,,,,
+east,rain_total,moisture + inflow + dust,0.57,0.45,0.75,0.001,2.29,-0.01,-0.24,0.968,0.092,,,,
+east,rain_total,ascent + shear + dust,0.47,0.32,,,1.4,,-0.13,,0.448,0.65,0.04,0.001,0.803
+east,dry_spell,moisture only,0.35,0.22,-0.59,0.001,1.0,,,,,,,,
+east,dry_spell,moisture + inflow + dust,0.35,0.12,-0.51,0.05,2.29,-0.09,-0.05,0.706,0.785,,,,
+east,dry_spell,ascent + shear + dust,0.1,-0.15,,,1.4,,-0.06,,0.771,-0.22,-0.14,0.328,0.54
+west,rain_total,moisture only,0.44,0.35,0.66,0.0,1.0,,,,,,,,
+west,rain_total,moisture + inflow + dust,0.48,0.29,0.6,0.004,1.61,0.11,-0.17,0.545,0.273,,,,
+west,rain_total,ascent + shear + dust,0.42,0.19,,,1.1,,-0.25,,0.146,0.63,0.14,0.001,0.409
+west,dry_spell,moisture only,0.26,0.11,-0.51,0.006,1.0,,,,,,,,
+west,dry_spell,moisture + inflow + dust,0.39,0.12,-0.79,0.001,1.61,0.45,0.11,0.034,0.488,,,,
+west,dry_spell,ascent + shear + dust,0.17,-0.08,,,1.1,,0.07,,0.737,-0.4,0.06,0.041,0.758
