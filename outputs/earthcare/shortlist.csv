@@ -1,0 +1,9 @@
+date,time_utc,orbit,frame,orbit_state,cpr_doppler_product,has_atlid_aerosol_layers,has_synergy_classification,track_lon_in_box,region,heavy_rain_km_on_track,max_daily_mm_on_track,max_at_lat,max_at_lon,mean_daily_mm_on_track,rain_km_ge1mmh_at_overpass,rain_km_ge10mmh_at_overpass,max_mmh_at_overpass,max_mmh_lat,max_mmh_lon,case_type,mean_lat_rain
+2025-08-14,02:35:54,6880,A,ascending,ECA_EXBA_CPR_CD__2A_20250814T023554Z_20250814T045231Z_06880A,True,True,-14.2,west,396.0,87.1,14.0,-14.0,22.0,427.0,116.0,18.0,13.48,-13.9,storm,
+2025-07-14,13:10:55,6404,E,descending,ECA_EXBA_CPR_CD__2A_20250714T131055Z_20250714T163720Z_06404E,True,True,-10.33,west,560.0,124.7,12.88,-10.75,34.3,367.0,79.0,17.2,15.68,-10.21,storm,
+2024-09-02,00:45:50,1495,A,ascending,ECA_EXBA_CPR_CD__2A_20240902T004550Z_20250906T214227Z_01495A,True,True,14.61,east,645.0,86.9,13.08,14.99,26.3,263.0,65.0,18.4,15.52,14.52,storm,
+2024-08-31,02:29:38,1465,A,ascending,ECA_EXBA_CPR_CD__2A_20240831T022938Z_20250904T191954Z_01465A,True,True,-11.32,west,532.0,70.8,10.02,-10.36,22.2,192.0,31.0,20.0,11.12,-10.57,storm,
+2024-08-23,01:40:46,1340,A,ascending,ECA_EXBA_CPR_CD__2A_20240823T014046Z_20250904T192615Z_01340A,True,True,0.94,central,452.0,54.5,10.08,1.89,15.6,234.0,23.0,16.9,12.51,1.43,storm,
+2025-06-11,00:49:18,5883,A,ascending,ECA_EXBA_CPR_CD__2A_20250611T004918Z_20250929T190711Z_05883A,True,True,12.56,east,0.0,0.6,11.8,13.19,0.0,,,,,,"dry pre-monsoon (dust, to confirm with ATLID)",0.0
+2025-06-18,02:28:57,5993,A,ascending,ECA_EXBA_CPR_CD__2A_20250618T022857Z_20250929T191244Z_05993A,True,True,-12.36,west,0.0,0.4,14.31,-12.22,0.0,,,,,,"dry pre-monsoon (dust, to confirm with ATLID)",0.0
+2025-06-06,15:09:54,5814,E,descending,ECA_EXAC_CPR_CD__2A_20250606T150954Z_20250606T164754Z_05814E,True,True,-16.87,west,0.0,0.3,11.46,-17.56,0.0,,,,,,"dry pre-monsoon (dust, to confirm with ATLID)",0.0

@@ -1,0 +1,19 @@
+{
+  "v": 5,
+  "createdOnFiles": {"v": 1, "at": "2026-11-15T00:40:00Z"},
+  "lists": "css",
+  "format": {"v": 1, "shared": ["project/deck.css"]},
+  "title": "Earth System Trend Detective",
+  "order": ["cover", "why", "solution", "discovery", "atmosphere", "storms", "impact"],
+  "sections": {
+    "s1": {"description": "The question: is the Sahel getting wetter, where, and why", "start": "cover"},
+    "s2": {"description": "What we built and how we checked it", "start": "solution"},
+    "s3": {"description": "What we found: the eastern Sahel and the monsoon", "start": "discovery"},
+    "s4": {"description": "What it means and how far to trust it", "start": "impact"}
+  },
+  "faces": {
+    "space-grotesk": {"family": "Space Grotesk", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap"},
+    "inter": {"family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap"}
+  },
+  "designSystems": []
+}

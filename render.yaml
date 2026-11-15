@@ -1,0 +1,29 @@
+# Render Blueprint for the EarthSignal API (Docker). Front end: Vercel (see docs/deployment.md).
+# Drafted with AI assistance (Claude Code). Render: New -> Blueprint -> pick this repository.
+services:
+  - type: web
+    name: earthsignal-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    repo: https://github.com/Hacenbens/earth-system-trend-detective
+    branch: main
+    region: frankfurt
+    # free: sleeps after 15 min idle (~1 min to wake). starter ($7/month): always on, better for judging.
+    plan: free
+    numInstances: 1            # rate limits and the AI-narrative cache are in memory: keep one instance
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: TRUST_PROXY_HEADERS  # Render's proxy sets X-Forwarded-For
+        value: "true"
+      - key: LOG_FORMAT
+        value: json
+      - key: LLM_MAX_CALLS_PER_DAY
+        value: "200"
+      - key: CORS_ORIGINS         # the Vercel URL, e.g. https://earthsignal.vercel.app (set after the first Vercel deploy)
+        sync: false
+      - key: TEAM_API_KEY         # new random value, entered in the dashboard
+        sync: false
+      - key: DEEPSEEK_API_KEY     # entered in the dashboard; leave empty to disable the AI narrative
+        sync: false

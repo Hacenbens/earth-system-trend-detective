@@ -11,9 +11,10 @@ Box = provisional Sahel, 10-20N, 18W-20E (decision D-003b): lon index 1620..1999
 cell centres -179.95.. / -89.95..). Mean = cos(lat)-weighted over valid cells (same method as fetch_sample_imerg.py).
 
 Usage:  .venv/bin/python scripts/fetch_sahel_series.py
-Needs:  Earthdata credentials in ~/.netrc. Outputs go to data/processed/ (daily results cached so reruns resume).
+Needs:  Earthdata credentials in .env (see .env.example) or ~/.netrc. Outputs go to data/processed/ (daily results cached so reruns resume).
 """
 import calendar
+import sys
 import io
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -29,8 +30,10 @@ LON_I, LAT_I = (1620, 1999), (1000, 1099)
 START, END_FINAL = "2024-01-01", "2025-09-30"
 END_LATE = pd.Timestamp.today().strftime("%Y-%m-%d")
 
-earthaccess.login(strategy="netrc")
-S = earthaccess.get_requests_https_session()
+sys.path.insert(0, str(ROOT / "src"))
+from earth_detective.auth import https_session  # noqa: E402
+
+S = https_session()
 
 
 def opendap_url(granule):

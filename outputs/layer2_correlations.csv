@@ -1,0 +1,73 @@
+region,rain_metric,variable,label,rho_raw,p_raw,rho_detrended,p_detrended,status
+sahel,rain_total,TQV,Column water vapour,0.7099,0.0000,0.7362,0.0000,supporting
+sahel,dry_spell,TQV,Column water vapour,-0.6152,0.0005,-0.6344,0.0003,supporting
+sahel,rain_total,QV2M,Near-surface humidity,0.6212,0.0004,0.6809,0.0001,supporting
+sahel,dry_spell,QV2M,Near-surface humidity,-0.6158,0.0005,-0.6218,0.0004,supporting
+sahel,rain_total,T2M_C,Near-surface temperature,-0.5764,0.0013,-0.5326,0.0035,supporting
+sahel,dry_spell,T2M_C,Near-surface temperature,0.3530,0.0654,0.3503,0.0676,unclear
+sahel,rain_total,ascent_500,Rising motion at 500 hPa (−ω×100),0.7028,0.0000,0.7192,0.0000,supporting
+sahel,dry_spell,ascent_500,Rising motion at 500 hPa (−ω×100),-0.5955,0.0008,-0.5435,0.0028,supporting
+sahel,rain_total,mfc_mm_day,Moisture convergence,0.6431,0.0002,0.7263,0.0000,supporting
+sahel,dry_spell,mfc_mm_day,Moisture convergence,-0.4373,0.0200,-0.3470,0.0704,unclear
+sahel,rain_total,U850,Westerly monsoon wind 850 hPa,0.4806,0.0096,0.5359,0.0033,supporting
+sahel,dry_spell,U850,Westerly monsoon wind 850 hPa,-0.2726,0.1605,-0.3744,0.0497,supporting
+sahel,rain_total,V850,Southerly wind 850 hPa,0.5353,0.0033,0.5495,0.0025,supporting
+sahel,dry_spell,V850,Southerly wind 850 hPa,-0.4904,0.0081,-0.3552,0.0636,unclear
+sahel,rain_total,DUEXTTAU,Dust optical depth,-0.4018,0.0341,-0.1221,0.5361,unclear
+sahel,dry_spell,DUEXTTAU,Dust optical depth,0.2501,0.1992,0.1160,0.5565,unclear
+sahel,rain_total,TOTEXTTAU,Total aerosol optical depth,-0.3514,0.0667,-0.0553,0.7799,unclear
+sahel,dry_spell,TOTEXTTAU,Total aerosol optical depth,0.1363,0.4892,-0.0991,0.6160,unclear
+west,rain_total,TQV,Column water vapour,0.5911,0.0009,0.6223,0.0004,supporting
+west,dry_spell,TQV,Column water vapour,-0.3465,0.0709,-0.5501,0.0024,supporting
+west,rain_total,QV2M,Near-surface humidity,0.4981,0.0070,0.5441,0.0028,supporting
+west,dry_spell,QV2M,Near-surface humidity,-0.2983,0.1231,-0.4598,0.0138,supporting
+west,rain_total,T2M_C,Near-surface temperature,-0.4313,0.0219,-0.3629,0.0577,unclear
+west,dry_spell,T2M_C,Near-surface temperature,0.0777,0.6942,0.0761,0.7004,unclear
+west,rain_total,ascent_500,Rising motion at 500 hPa (−ω×100),0.5928,0.0009,0.5873,0.0010,supporting
+west,dry_spell,ascent_500,Rising motion at 500 hPa (−ω×100),-0.3279,0.0885,-0.4001,0.0349,supporting
+west,rain_total,mfc_mm_day,Moisture convergence,0.6535,0.0002,0.6459,0.0002,supporting
+west,dry_spell,mfc_mm_day,Moisture convergence,-0.3558,0.0632,-0.4220,0.0253,supporting
+west,rain_total,U850,Westerly monsoon wind 850 hPa,0.4795,0.0098,0.5293,0.0038,supporting
+west,dry_spell,U850,Westerly monsoon wind 850 hPa,-0.1084,0.5830,-0.1040,0.5984,unclear
+west,rain_total,V850,Southerly wind 850 hPa,0.7668,0.0000,0.7761,0.0000,supporting
+west,dry_spell,V850,Southerly wind 850 hPa,-0.3799,0.0462,-0.4773,0.0102,supporting
+west,rain_total,DUEXTTAU,Dust optical depth,-0.2375,0.2235,-0.0629,0.7503,unclear
+west,dry_spell,DUEXTTAU,Dust optical depth,0.0181,0.9273,0.0317,0.8726,unclear
+west,rain_total,TOTEXTTAU,Total aerosol optical depth,-0.1686,0.3911,-0.0411,0.8357,unclear
+west,dry_spell,TOTEXTTAU,Total aerosol optical depth,-0.0613,0.7566,-0.0525,0.7906,unclear
+central,rain_total,TQV,Column water vapour,0.6497,0.0002,0.7181,0.0000,supporting
+central,dry_spell,TQV,Column water vapour,-0.6366,0.0003,-0.4280,0.0231,supporting
+central,rain_total,QV2M,Near-surface humidity,0.5999,0.0007,0.7192,0.0000,supporting
+central,dry_spell,QV2M,Near-surface humidity,-0.5731,0.0014,-0.3804,0.0458,supporting
+central,rain_total,T2M_C,Near-surface temperature,-0.5391,0.0031,-0.5424,0.0029,supporting
+central,dry_spell,T2M_C,Near-surface temperature,0.3103,0.1080,0.2852,0.1413,unclear
+central,rain_total,ascent_500,Rising motion at 500 hPa (−ω×100),0.6130,0.0005,0.6929,0.0000,supporting
+central,dry_spell,ascent_500,Rising motion at 500 hPa (−ω×100),-0.5019,0.0065,-0.3585,0.0610,unclear
+central,rain_total,mfc_mm_day,Moisture convergence,0.5654,0.0017,0.6459,0.0002,supporting
+central,dry_spell,mfc_mm_day,Moisture convergence,-0.1845,0.3474,0.0274,0.8901,unclear
+central,rain_total,U850,Westerly monsoon wind 850 hPa,0.2441,0.2106,0.2523,0.1952,unclear
+central,dry_spell,U850,Westerly monsoon wind 850 hPa,-0.3930,0.0386,-0.4877,0.0085,supporting
+central,rain_total,V850,Southerly wind 850 hPa,0.0613,0.7566,0.0558,0.7778,unclear
+central,dry_spell,V850,Southerly wind 850 hPa,-0.1675,0.3943,0.1538,0.4346,unclear
+central,rain_total,DUEXTTAU,Dust optical depth,-0.2994,0.1217,-0.1390,0.4805,unclear
+central,dry_spell,DUEXTTAU,Dust optical depth,0.2337,0.2313,0.1204,0.5416,unclear
+central,rain_total,TOTEXTTAU,Total aerosol optical depth,-0.3224,0.0943,-0.1303,0.5088,unclear
+central,dry_spell,TOTEXTTAU,Total aerosol optical depth,0.1669,0.3958,-0.0137,0.9449,unclear
+east,rain_total,TQV,Column water vapour,0.7209,0.0000,0.6995,0.0000,supporting
+east,dry_spell,TQV,Column water vapour,-0.7345,0.0000,-0.6689,0.0001,supporting
+east,rain_total,QV2M,Near-surface humidity,0.7159,0.0000,0.7170,0.0000,supporting
+east,dry_spell,QV2M,Near-surface humidity,-0.7947,0.0000,-0.6798,0.0001,supporting
+east,rain_total,T2M_C,Near-surface temperature,-0.6793,0.0001,-0.5829,0.0011,supporting
+east,dry_spell,T2M_C,Near-surface temperature,0.4844,0.0090,0.3706,0.0522,unclear
+east,rain_total,ascent_500,Rising motion at 500 hPa (−ω×100),0.5982,0.0008,0.5539,0.0022,supporting
+east,dry_spell,ascent_500,Rising motion at 500 hPa (−ω×100),-0.3350,0.0814,-0.3065,0.1126,unclear
+east,rain_total,mfc_mm_day,Moisture convergence,0.4537,0.0153,0.3706,0.0522,unclear
+east,dry_spell,mfc_mm_day,Moisture convergence,-0.3602,0.0598,-0.1248,0.5269,unclear
+east,rain_total,U850,Westerly monsoon wind 850 hPa,0.2983,0.1231,0.4319,0.0217,supporting
+east,dry_spell,U850,Westerly monsoon wind 850 hPa,-0.1905,0.3316,-0.4488,0.0166,supporting
+east,rain_total,V850,Southerly wind 850 hPa,0.2846,0.1421,0.2085,0.2869,unclear
+east,dry_spell,V850,Southerly wind 850 hPa,-0.5424,0.0029,-0.3853,0.0429,supporting
+east,rain_total,DUEXTTAU,Dust optical depth,-0.3415,0.0753,-0.0350,0.8595,unclear
+east,dry_spell,DUEXTTAU,Dust optical depth,0.3727,0.0508,-0.1034,0.6004,unclear
+east,rain_total,TOTEXTTAU,Total aerosol optical depth,-0.2808,0.1478,0.0339,0.8639,unclear
+east,dry_spell,TOTEXTTAU,Total aerosol optical depth,0.2616,0.1787,-0.3016,0.1188,unclear
