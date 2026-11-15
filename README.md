@@ -47,6 +47,13 @@ make api              # API on http://127.0.0.1:8000, interactive docs at http:/
 The API needs no login for reading and running analyses (judges get a public link), with rate limits, a body-size limit and a storage cap. `POST /explain` (expert confirmation) needs an `X-API-Key` header when `TEAM_API_KEY` is set; ask the team lead for the key. Set it before exposing the server (`make api HOST=0.0.0.0`). Details: `docs/app/backend_architecture.md` §4b.
 Endpoints follow `docs/app/api_contract.md`; data model: `docs/app/data_model.md`; architecture (clean architecture, SOLID, Result pattern, logging): `docs/app/backend_architecture.md`. Tests: `make test`, `make smoke` (server running), `make smoke-protections`.
 
+## Run the front end (Next.js, `frontend/`)
+```bash
+make api                                   # backend first (terminal 1)
+cd frontend && npm ci && npm run dev       # http://localhost:3000 (terminal 2)
+```
+The API URL comes from `NEXT_PUBLIC_API_URL` (default `http://127.0.0.1:8000`, see `frontend/.env.example`). API client: `frontend/src/lib/api.js`; first screen (Layer 1, detect): `frontend/src/components/DetectWorkbench.js`. Never put `TEAM_API_KEY` in front-end code or `NEXT_PUBLIC_*` variables: they are public.
+
 ## Team rules
 - **Read `docs/decisions/DECISIONS.md` first.** Change scope only via a new decision entry. Never edit an accepted one.
 - **Every claim** shown in the app or slides needs a row in `docs/research/evidence_ledger.md`. Cite only papers marked `READ` in `literature.md`.
