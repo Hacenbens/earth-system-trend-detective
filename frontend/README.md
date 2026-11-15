@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# EarthSignal — frontend_earth_system
 
-## Getting Started
+EarthSignal turns NASA Earth observations into scientific investigations:
+detect a trend, examine the physics behind it, and explore conditional futures.
 
-First, run the development server:
+This is the Next.js (JavaScript) version of the original Vite + React/TypeScript app,
+with the same screens and design, plus a real map of each investigation's study area.
+
+## Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Structure
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```
+src/app/
+  layout.js            root layout: fonts, metadata, <AppProvider>
+  page.js              /            landing
+  auth/page.js         /auth
+  (workspace)/         /dashboard, /investigations/..., /datasets/..., /methodology, /references
+    layout.js          mounts the persistent workspace shell (sidebar + screens)
+    */page.js          route entries (the shell renders the screen for the URL)
+  not-found.js         unknown URLs fall back to the landing page
+  globals.css          Tailwind v4 theme + EarthSignal styles + map styles
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+  api/                 data layer
+    earthSignalData.js   regions, variables, workflow layers, discovery cards
+    dashboardData.js     investigations, datasets, reports, references
+    regionBounds.js      study-box helpers for the maps
 
-## Learn More
+  layout/              app-wide pieces
+    AppProvider.js       session, toast, navigation (was App.tsx)
+    WorkspaceShell.js    URL -> workspace screen
+    Navbar.js, Footer.js, DashboardSidebar.js, ScientificIcons.js
 
-To learn more about Next.js, take a look at the following resources:
+  pages/               screens and their sections
+    landing/  auth/  dashboard/  investigations/  datasets/  methodology/
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Images live in `public/images/`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Study-area map
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`pages/investigations/StudyAreaMap.js` shows the investigation's exact bounding box
+(`bounds`, or parsed from the `coords` label such as `2°S–12°N, 34°E–51°E`) on a real
+Leaflet map, with Map (CARTO Dark Matter) and Satellite (Esri World Imagery) basemaps.
+It appears on the investigation overview (Study area boundary) and on the
+regional comparison screen (West / Central / East boxes; click a box to toggle it).
+No API key is needed.
