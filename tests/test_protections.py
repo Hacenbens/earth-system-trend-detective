@@ -112,6 +112,15 @@ class SettingsTests(unittest.TestCase):
         self.assertTrue(s.describe()["team_api_key_set"])
         self.assertIsNone(Settings.from_env({}).team_api_key)
 
+    def test_env_file_reader(self):
+        from earth_detective.backend.core.settings import read_env_file
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / ".env"
+            f.write_text('# comment\n\nTEAM_API_KEY="abc=def"\nexport LOG_LEVEL=DEBUG\nEMPTY=\nnoequals\n')
+            self.assertEqual(read_env_file(f), {"TEAM_API_KEY": "abc=def", "LOG_LEVEL": "DEBUG", "EMPTY": ""})
+            self.assertEqual(read_env_file(Path(d) / "missing"), {})
+            self.assertEqual(read_env_file(None), {})
+
     def test_rejects_bad_limits(self):
         for bad in ("0", "-5", "abc"):
             with self.assertRaises(ValueError):

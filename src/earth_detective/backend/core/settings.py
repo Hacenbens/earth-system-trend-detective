@@ -15,6 +15,9 @@ MAX_INVESTIGATIONS       500                                             storage
 INVESTIGATION_TTL_DAYS   7                                               investigations older than this are deleted on create
 TEAM_API_KEY             (none)                                          when set, POST /explain requires header X-API-Key
 TRUST_PROXY_HEADERS      false                                           client IP from X-Forwarded-For (only behind your own proxy)
+
+Values come from the process environment, then from the git-ignored .env at the project root for names not set there
+(the environment always wins). Set TREND_DETECTIVE_ENV_FILE to use another file, or to an empty string to skip it.
 """
 from __future__ import annotations
 
@@ -50,7 +53,7 @@ class Settings:
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> "Settings":
-        e = os.environ if env is None else env
+        e = {**read_env_file(_env_file_path()), **os.environ} if env is None else env
         fmt = e.get("LOG_FORMAT", LogFormat.JSON).lower()
         level = e.get("LOG_LEVEL", "INFO").upper()
         if fmt not in tuple(LogFormat):
@@ -80,6 +83,32 @@ class Settings:
                 "rate_limit_heavy_per_minute": self.rate_limit_heavy_per_minute, "max_body_bytes": self.max_body_bytes,
                 "max_investigations": self.max_investigations, "investigation_ttl_days": self.investigation_ttl_days,
                 "team_api_key_set": self.team_api_key is not None, "trust_proxy_headers": self.trust_proxy_headers}
+
+
+def _env_file_path() -> Path | None:
+    raw = os.environ.get("TREND_DETECTIVE_ENV_FILE")
+    if raw == "":
+        return None
+    return Path(raw) if raw else PROJECT_ROOT / ".env"
+
+
+def read_env_file(path: Path | None) -> dict[str, str]:
+    """Minimal KEY=VALUE reader (comments, blank lines, optional `export`, matching quotes). Never executes anything."""
+    if path is None or not path.is_file():
+        return {}
+    out: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.removeprefix("export ").strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+            value = value[1:-1]
+        if key:
+            out[key] = value
+    return out
 
 
 def _positive_int(env, name: str, default: int) -> int:

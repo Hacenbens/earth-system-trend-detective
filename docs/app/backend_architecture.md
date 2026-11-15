@@ -112,6 +112,8 @@ The judges need a public link without login, so the API stays open for reading a
 | Security headers on every response | `RequestContextMiddleware` | `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` | — |
 | Client IP behind a proxy | `client_ip()` | `TRUST_PROXY_HEADERS` (false): only enable behind your own reverse proxy, the header is easy to forge | — |
 
+Settings are read from the process environment, then from the git-ignored `.env` at the project root for names the environment does not set (`core/settings.py: read_env_file`, a plain KEY=VALUE reader that runs nothing). So `TEAM_API_KEY` in `.env` is enough for `make api`; `TREND_DETECTIVE_ENV_FILE=` (empty) skips the file.
+
 Middleware order (outermost first): CORS → request context (request id, access log, security headers) → protection → routes, so refused requests are still logged with a request id and carry CORS headers. Start-up logs the settings without secrets (`Settings.describe()` reports only `team_api_key_set`).
 
 Limits of this design: the rate limiter lives in one process's memory (several workers or servers need a shared store such as Redis); per-IP limits can be bypassed by an attacker with many addresses, so put the public deployment behind a platform with its own DDoS protection.
