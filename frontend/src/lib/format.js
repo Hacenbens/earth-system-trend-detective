@@ -36,3 +36,27 @@ export function senLine(points, slope) {
   const x0 = Math.min(...xs), x1 = Math.max(...xs);
   return [{ x: x0, y: intercept + slope * x0 }, { x: x1, y: intercept + slope * x1 }];
 }
+
+export const EVIDENCE_CATEGORIES = [
+  { code: "moisture", label: "Moisture", hint: "water vapour, convergence" },
+  { code: "circulation", label: "Circulation", hint: "monsoon winds, ascent, jet" },
+  { code: "dust", label: "Dust", hint: "aerosol optical depth" },
+  { code: "land", label: "Land surface", hint: "soil wetness, heat fluxes" },
+  { code: "storm_structure", label: "Storm structure", hint: "EarthCARE radar + lidar cases" },
+];
+
+/** Compact number for physical values of any magnitude (Pa/s to mm). */
+export function compact(x) {
+  if (x == null || Number.isNaN(x)) return "—";
+  const a = Math.abs(x);
+  const s = a === 0 ? "0" : a >= 100 ? a.toFixed(0) : a >= 1 ? a.toFixed(2) : a.toPrecision(2);
+  return `${x > 0 ? "+" : x < 0 ? "−" : ""}${s}`;
+}
+
+/** z-scores of a {year: value} map, for plotting two variables on one axis. */
+export function standardize(points) {
+  const v = points.map((p) => p.y);
+  const m = v.reduce((a, b) => a + b, 0) / (v.length || 1);
+  const sd = Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / Math.max(v.length - 1, 1)) || 1;
+  return points.map((p) => ({ x: p.x, y: (p.y - m) / sd }));
+}

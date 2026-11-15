@@ -52,7 +52,7 @@ Endpoints follow `docs/app/api_contract.md`; data model: `docs/app/data_model.md
 make api                                   # backend first (terminal 1)
 cd frontend && npm ci && npm run dev       # http://localhost:3000 (terminal 2)
 ```
-The API URL comes from `NEXT_PUBLIC_API_URL` (default `http://127.0.0.1:8000`, see `frontend/.env.example`). API client: `frontend/src/lib/api.js`; first screen (Layer 1, detect): `frontend/src/components/DetectWorkbench.js`. Never put `TEAM_API_KEY` in front-end code or `NEXT_PUBLIC_*` variables: they are public.
+The API URL comes from `NEXT_PUBLIC_API_URL` (default `http://127.0.0.1:8000`, see `frontend/.env.example`). API client: `frontend/src/lib/api.js`; screens: Layer 1 detect (`frontend/src/components/DetectWorkbench.js`), Layer 2 investigate (`EvidencePanel.js`, shown under the detect results). Never put `TEAM_API_KEY` in front-end code or `NEXT_PUBLIC_*` variables: they are public.
 
 ## Team rules
 - **Read `docs/decisions/DECISIONS.md` first.** Change scope only via a new decision entry. Never edit an accepted one.

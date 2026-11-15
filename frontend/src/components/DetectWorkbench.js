@@ -3,29 +3,14 @@
 // Drafted with AI assistance (Claude Code). See docs/submission/si_usage.md.
 import { useEffect, useMemo, useState } from "react";
 
-import { ApiError, createInvestigation, detect, docsUrl, getRegions, reportCsvUrl, reportJsonUrl } from "@/lib/api";
+import { createInvestigation, detect, docsUrl, getRegions, reportCsvUrl, reportJsonUrl } from "@/lib/api";
 import { FIRST_YEAR, LAST_YEAR, METRICS, MIN_SEASONS } from "@/lib/format";
+import ErrorNote from "./ErrorNote";
+import EvidencePanel from "./EvidencePanel";
 import RegionMap from "./RegionMap";
 import TrendCard from "./TrendCard";
 
 const YEARS = Array.from({ length: LAST_YEAR - FIRST_YEAR + 1 }, (_, i) => FIRST_YEAR + i);
-
-function ErrorNote({ error, onRetry }) {
-  if (!error) return null;
-  const e = error instanceof ApiError ? error : new ApiError({ status: 0, kind: "unexpected", message: String(error) });
-  const hint = {
-    rate_limited: `Too many requests. Try again in ${e.retryAfter ?? 60} s.`,
-    capacity: "The server is storing too many investigations right now. Try again later.",
-    network: null,
-  }[e.kind];
-  return (
-    <div role="alert" className="rounded-lg border border-[var(--down)] bg-[var(--down-soft)] px-4 py-3 text-sm flex flex-wrap items-center gap-x-4 gap-y-1">
-      <span className="font-medium">{hint || e.message}</span>
-      {e.requestId && <span className="text-xs text-[var(--muted)]">request id {e.requestId}</span>}
-      {onRetry && <button onClick={onRetry} className="text-sm underline underline-offset-2">Retry</button>}
-    </div>
-  );
-}
 
 export default function DetectWorkbench() {
   const [regions, setRegions] = useState([]);
@@ -207,6 +192,12 @@ export default function DetectWorkbench() {
             the next layers investigate why. The 2024–2025 near-real-time values are shown apart and never used for trends.
           </p>
         </section>
+      )}
+
+      {run && (
+        <EvidencePanel key={run.investigation.id} investigationId={run.investigation.id} detection={run.detection}
+                       regionIds={run.detection.handoff?.regions || byRegion.map((g) => g.id)}
+                       regionNames={Object.fromEntries(regions.map((r) => [r.id, r.name]))} />
       )}
 
       {!run && status !== "error" && (
