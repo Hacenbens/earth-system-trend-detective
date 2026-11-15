@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { Download, FileCode2, FileSpreadsheet, Image as ImageIcon, Printer } from 'lucide-react';
 import { SCIENTIFIC_REFERENCES } from '@/app/api/dashboardData';
-import { pText, scaler, senEnds, signed, useLiveReport } from '@/lib/liveLayers';
+import { pText, scaler, senEnds, signed, useLiveMechanisms, useLiveReport } from '@/lib/liveLayers';
+import { TrendChart } from '@/components/charts/StatCharts';
+import { buildFindings } from '@/components/report/findings';
+import { FindingTiles, Headline } from '@/components/report/KeyFindings';
+import { PrintReport } from '@/components/report/PrintReport';
 
 // ---- live feed (backend report.json): sentences and series for the report and the exports
 const SC_LABEL = { stabilization: 'Stabilization', trend_continuation: 'Trend continuation', increased_stress: 'Increased stress' };
@@ -51,6 +55,8 @@ function liveSeriesPoints(live) {
 export function ScientificReportPage({ investigation, datasets, onGoToExport }) {
   const live = useLiveReport(investigation);
   const isLive = live.status === 'ready' && !!live.main;
+  const mech = useLiveMechanisms();
+  const findings = isLive ? buildFindings(live, mech.status === 'ready' ? mech.mechanisms : [], investigation) : null;
   return (
     <article className="rounded-[28px] bg-[#FBFAF6] border border-[#E6E0D2] p-6 sm:p-10 shadow-[0_20px_50px_rgba(19,29,56,0.06)] space-y-8 print:shadow-none print:border-none">
       {/* Report Header */}
@@ -77,7 +83,26 @@ export function ScientificReportPage({ investigation, datasets, onGoToExport }) 
         </button>
       </header>
 
+      {/* Key findings (live): the metrics and keywords first, details below */}
+      {findings && (
+        <section className="space-y-4">
+          <div className="p-6 rounded-[22px] bg-[#131D38] text-[#f4f1ea]">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[#ffc20d]">KEY FINDINGS · LIVE ANALYSIS</div>
+            <Headline parts={findings.headline} className="mt-2 text-[16px] leading-[1.7] text-[#f4f1ea]" />
+          </div>
+          <FindingTiles tiles={findings.tiles} />
+          <div className="rounded-[22px] bg-[#131D38] p-5">
+            <TrendChart
+              points={(findings.main.series || []).filter((q) => q.value != null).map((q) => ({ x: Number(q.date), y: q.value }))}
+              slope={findings.main.sen_slope}
+              yLabel={`${findings.main.label} (${findings.main.unit})`}
+            />
+          </div>
+        </section>
+      )}
+
       {/* Executive Summary */}
+      {!findings && (
       <section className="p-6 rounded-[22px] bg-[#131D38] text-[#f4f1ea]">
         <div className="font-mono text-[10px] uppercase tracking-wider text-[#ffc20d]">
           {isLive ? 'EXECUTIVE SUMMARY (LIVE · BACKEND ANALYSIS)' : 'EXECUTIVE SUMMARY (CANDIDATE PROVENANCE STATUS)'}
@@ -92,9 +117,14 @@ export function ScientificReportPage({ investigation, datasets, onGoToExport }) 
               : 'Statistical trend metrics remain clearly labeled as diagnostic placeholders until archive file audits for GPM IMERG Final V07 and MERRA-2 are verified. Layers 4–5 represent conditional sensitivity scenarios and watershed comparisons, never forecasts.'}
         </p>
       </section>
+      )}
 
-      {/* Sections 1–8 */}
-      <div className="space-y-6 text-[14px] leading-[1.65] text-[#131D38]">
+      {/* Sections 1–8 (collapsed behind the key findings when live) */}
+      <details open={!findings} className="group">
+        <summary className="cursor-pointer list-none font-mono text-[11px] uppercase tracking-wider text-[#5B6478] hover:text-[#131D38]">
+          {findings ? '▸ Full report: 8 sections (method, evidence, scenarios, limitations, references)' : 'Report sections'}
+        </summary>
+      <div className="mt-4 space-y-6 text-[14px] leading-[1.65] text-[#131D38]">
         <section>
           <h3 className="font-display text-[18px] font-semibold">
             1. Investigation overview & scope
@@ -189,6 +219,7 @@ export function ScientificReportPage({ investigation, datasets, onGoToExport }) 
           </ul>
         </section>
       </div>
+      </details>
     </article>
   );
 }
@@ -214,6 +245,8 @@ export function ReportExportPage({ investigation, datasets, onShowToast }) {
   const [includeProvenance, setIncludeProvenance] = useState(true);
   const [includeLimitations, setIncludeLimitations] = useState(true);
   const [includeReferences, setIncludeReferences] = useState(true);
+  const mech = useLiveMechanisms();
+  const findings = isLive ? buildFindings(live, mech.status === 'ready' ? mech.mechanisms : [], investigation) : null;
 
   const downloadBlob = (content, filename, mime) => {
     const blob = new Blob([content], { type: mime });
@@ -395,9 +428,13 @@ export function ReportExportPage({ investigation, datasets, onShowToast }) {
             {investigation.region} · {investigation.period}
           </div>
           <h3 className="font-display text-[22px] font-semibold">{investigation.title}</h3>
-          <p className="text-[13px] text-[#5B6478]">
-            {investigation.researchQuestion || 'Multi-layer Earth-system investigation dossier.'}
-          </p>
+          {findings ? (
+            <Headline parts={findings.headline} className="text-[13px] leading-[1.6] text-[#131D38]" />
+          ) : (
+            <p className="text-[13px] text-[#5B6478]">
+              {investigation.researchQuestion || 'Multi-layer Earth-system investigation dossier.'}
+            </p>
+          )}
 
           {includeCharts && (
             <div className="p-4 rounded-[16px] bg-[#131D38] text-[#f4f1ea]">
@@ -427,6 +464,13 @@ export function ReportExportPage({ investigation, datasets, onShowToast }) {
           )}
         </div>
       </section>
+      <PrintReport
+        investigation={investigation}
+        live={live}
+        findings={findings}
+        narrative={null}
+        options={{ includeCharts, includeProvenance, includeLimitations, includeReferences }}
+      />
     </div>
   );
 }

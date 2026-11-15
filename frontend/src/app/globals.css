@@ -227,3 +227,32 @@
 .es-map .leaflet-tooltip.es-map-tip::before {
   display: none;
 }
+
+/* Print / Save as PDF: only the metric-based report (components/report/PrintReport.js) is printed. */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  body > *:not(.print-root) {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #131d38 !important;
+  }
+  .print-root {
+    counter-reset: print-section;
+    display: block !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* automatic section numbers in the print layout (sections are optional) */
+.print-root section {
+  counter-increment: print-section;
+}
+.print-section-number::before {
+  content: counter(print-section) ".";
+}
