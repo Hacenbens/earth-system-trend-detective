@@ -71,6 +71,14 @@ class AssociationAnalyzer(Protocol):
     def detrended(self, x: dict[int, float], y: dict[int, float]) -> Association: ...
 
 
+class ChatModel(Protocol):
+    """OpenAI-compatible chat completion with tool calling. Returns the assistant message:
+    {"content": str | None, "tool_calls": [{"id", "function": {"name", "arguments"}}] | None}."""
+    model_name: str
+
+    def complete(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> dict[str, Any]: ...
+
+
 class Clock(Protocol):
     def now(self) -> str: ...
 

@@ -8,7 +8,7 @@ from ....core.constants import API_KEY_HEADER, API_PREFIX
 from ....core.settings import Settings, get_settings
 from ....domain.result import AppError
 from ..container import Container, get_container
-from ..dto import DetectDTO, ExplainDTO, InvestigateDTO, InvestigationCreateDTO, ProjectDTO, SolveDTO
+from ..dto import DetectDTO, ExplainDTO, InvestigateDTO, InvestigationCreateDTO, NarrativeDTO, ProjectDTO, SolveDTO
 from ..responses import ApiError, to_response, to_text
 
 router = APIRouter(prefix=f"{API_PREFIX}/investigations", tags=["investigations"])
@@ -64,6 +64,11 @@ def project(inv_id: str, body: ProjectDTO, c: Container = Depends(get_container)
 @router.post("/{inv_id}/solve", tags=["layer 5: solve"], summary="Intervention comparison")
 def solve(inv_id: str, body: SolveDTO, c: Container = Depends(get_container)):
     return to_response(c.solve.execute(body.to_command(inv_id)))
+
+
+@router.post("/{inv_id}/narrative", tags=["report"], summary="AI narrative (LLM over the warehouse, numbers verified)")
+def narrative(inv_id: str, body: NarrativeDTO, c: Container = Depends(get_container)):
+    return to_response(c.narrative.execute(body.to_command(inv_id)))
 
 
 @router.get("/{inv_id}/report.json", tags=["report"], summary="Scientific investigation report")

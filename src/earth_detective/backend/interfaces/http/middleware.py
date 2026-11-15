@@ -61,9 +61,11 @@ class ProtectionMiddleware(BaseHTTPMiddleware):
     """Refuses oversized bodies (413) and clients above the rate limits (429, with Retry-After)."""
 
     def __init__(self, app, *, max_body_bytes: int, limiter: SlidingWindowRateLimiter,
-                 heavy_limiter: SlidingWindowRateLimiter, trust_proxy_headers: bool = False):
+                 heavy_limiter: SlidingWindowRateLimiter, trust_proxy_headers: bool = False,
+                 llm_limiter: SlidingWindowRateLimiter | None = None):
         super().__init__(app)
         self._max, self._limiter, self._heavy, self._trust = max_body_bytes, limiter, heavy_limiter, trust_proxy_headers
+        self._llm = llm_limiter
 
     async def dispatch(self, request: Request, call_next):
         if request.method in ("POST", "PUT", "PATCH"):
@@ -78,13 +80,15 @@ class ProtectionMiddleware(BaseHTTPMiddleware):
         checks = [(self._limiter, "all")]
         if is_heavy(request.method, request.url.path):
             checks.append((self._heavy, "heavy"))
+        if self._llm is not None and request.method == "POST" and request.url.path.endswith("/narrative"):
+            checks.append((self._llm, "llm"))
         for limiter, scope in checks:
             ok, retry = limiter.hit(f"{scope}:{ip}")
             if not ok:
                 log.warning("rate limited", extra={"event": "http.rate_limited", "scope": scope, "client": ip,
                                                    "path": request.url.path})
                 return error_response(AppError.rate_limited("too many requests; slow down", scope=scope,
-                                                            limit_per_minute=limiter.limit, retry_after_s=retry),
+                                                            limit=limiter.limit, window_s=limiter.window, retry_after_s=retry),
                                       headers={"Retry-After": str(retry)})
         return await call_next(request)
 

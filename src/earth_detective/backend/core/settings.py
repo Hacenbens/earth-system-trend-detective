@@ -15,6 +15,11 @@ MAX_INVESTIGATIONS       500                                             storage
 INVESTIGATION_TTL_DAYS   7                                               investigations older than this are deleted on create
 TEAM_API_KEY             (none)                                          when set, POST /explain requires header X-API-Key
 TRUST_PROXY_HEADERS      false                                           client IP from X-Forwarded-For (only behind your own proxy)
+DEEPSEEK_API_KEY         (none)                                          enables POST /narrative (LLM over the warehouse)
+LLM_BASE_URL             https://api.deepseek.com                        any OpenAI-compatible chat-completions endpoint
+LLM_MODEL                deepseek-chat                                   model name
+LLM_RATE_LIMIT_PER_HOUR  10                                              narrative requests per client IP per hour
+LLM_MAX_CALLS_PER_DAY    200                                             narratives generated per day (cost cap; cached ones are free)
 
 Values come from the process environment, then from the git-ignored .env at the project root for names not set there
 (the environment always wins). Set TREND_DETECTIVE_ENV_FILE to use another file, or to an empty string to skip it.
@@ -48,6 +53,11 @@ class Settings:
     investigation_ttl_days: int = 7
     team_api_key: str | None = None
     trust_proxy_headers: bool = False
+    llm_api_key: str | None = None
+    llm_base_url: str = "https://api.deepseek.com"
+    llm_model: str = "deepseek-chat"
+    llm_rate_limit_per_hour: int = 10
+    llm_max_calls_per_day: int = 200
     api_title: str = API_TITLE
     api_version: str = API_VERSION
 
@@ -74,6 +84,11 @@ class Settings:
             investigation_ttl_days=_positive_int(e, "INVESTIGATION_TTL_DAYS", 7),
             team_api_key=e.get("TEAM_API_KEY") or None,
             trust_proxy_headers=e.get("TRUST_PROXY_HEADERS", "false").lower() in ("1", "true", "yes"),
+            llm_api_key=e.get("DEEPSEEK_API_KEY") or None,
+            llm_base_url=(e.get("LLM_BASE_URL") or "https://api.deepseek.com").rstrip("/"),
+            llm_model=e.get("LLM_MODEL") or "deepseek-chat",
+            llm_rate_limit_per_hour=_positive_int(e, "LLM_RATE_LIMIT_PER_HOUR", 10),
+            llm_max_calls_per_day=_positive_int(e, "LLM_MAX_CALLS_PER_DAY", 200),
         )
 
     def describe(self) -> dict:
@@ -82,7 +97,9 @@ class Settings:
                 "cors_origins": list(self.cors_origins), "rate_limit_per_minute": self.rate_limit_per_minute,
                 "rate_limit_heavy_per_minute": self.rate_limit_heavy_per_minute, "max_body_bytes": self.max_body_bytes,
                 "max_investigations": self.max_investigations, "investigation_ttl_days": self.investigation_ttl_days,
-                "team_api_key_set": self.team_api_key is not None, "trust_proxy_headers": self.trust_proxy_headers}
+                "team_api_key_set": self.team_api_key is not None, "trust_proxy_headers": self.trust_proxy_headers,
+                "llm_configured": self.llm_api_key is not None, "llm_model": self.llm_model, "llm_base_url": self.llm_base_url,
+                "llm_rate_limit_per_hour": self.llm_rate_limit_per_hour, "llm_max_calls_per_day": self.llm_max_calls_per_day}
 
 
 def _env_file_path() -> Path | None:

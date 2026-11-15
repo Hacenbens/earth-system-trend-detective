@@ -7,14 +7,15 @@ from functools import lru_cache
 
 from ...application import catalogue as cat
 from ...application import investigations as invs
-from ...application import layers, report
+from ...application import layers, narrative, report
 from ...core.settings import Settings, get_settings
 from ...application.services import InvestigationLoader, RegionValidator, SeriesSelector, TrendAssessor
-from ...domain.ports import (AssociationAnalyzer, BuildInfoReader, CaseStudyReader, CatalogueReader, Clock, DatasetReferenceReader,
+from ...domain.ports import (AssociationAnalyzer, BuildInfoReader, CaseStudyReader, CatalogueReader, ChatModel, Clock, DatasetReferenceReader,
                              InterventionCatalogue, InvestigationHousekeeping, InvestigationRepository, MechanismReader, ObservationReader,
                              PrecomputedTrendReader, TrendAnalyzer)
 from ...infrastructure.adapters import (DetrendedSpearmanAnalyzer, JsonInvestigationRepository, MannKendallTrendAnalyzer,
                                         StaticInterventionCatalogue, SystemClock)
+from ...infrastructure.llm_client import OpenAICompatibleChatModel
 from ...infrastructure.sqlite_repositories import (SqliteBuildInfoRepository, SqliteCaseStudyRepository, SqliteCatalogueRepository,
                                                    SqliteDatasetReferenceRepository, SqliteMechanismRepository,
                                                    SqliteObservationRepository, SqlitePrecomputedTrendRepository, SqliteWarehouse)
@@ -34,6 +35,7 @@ class Adapters:
     association: AssociationAnalyzer
     clock: Clock
     housekeeping: InvestigationHousekeeping | None = None
+    llm: ChatModel | None = None
 
 
 def production_adapters(settings: Settings) -> Adapters:
@@ -42,13 +44,15 @@ def production_adapters(settings: Settings) -> Adapters:
     return Adapters(SqliteCatalogueRepository(db), SqliteObservationRepository(db), SqlitePrecomputedTrendRepository(db),
                     SqliteMechanismRepository(db), SqliteCaseStudyRepository(db), SqliteBuildInfoRepository(db),
                     SqliteDatasetReferenceRepository(db), StaticInterventionCatalogue(), store,
-                    MannKendallTrendAnalyzer(), DetrendedSpearmanAnalyzer(), SystemClock(), housekeeping=store)
+                    MannKendallTrendAnalyzer(), DetrendedSpearmanAnalyzer(), SystemClock(), housekeeping=store,
+                    llm=OpenAICompatibleChatModel(settings.llm_base_url, settings.llm_api_key, settings.llm_model)
+                    if settings.llm_api_key else None)
 
 
 class Container:
     """Builds every use case from a set of adapters (dependency injection by constructor)."""
 
-    def __init__(self, a: Adapters, limits: invs.StorageLimits = invs.StorageLimits()):
+    def __init__(self, a: Adapters, limits: invs.StorageLimits = invs.StorageLimits(), llm_daily_cap: int = 200):
         regions = RegionValidator(a.catalogue)
         loader = InvestigationLoader(a.investigations)
         selector = SeriesSelector(a.catalogue, a.observations)
@@ -77,9 +81,13 @@ class Container:
         # report
         self.report = report.BuildReport(loader, a.references, a.build)
         self.report_csv = report.ExportReportCsv(loader)
+        # AI narrative over the warehouse (read-only tools, numbers verified)
+        self.narrative = narrative.GenerateNarrative(loader, a.trends, a.mechanisms, a.catalogue, a.llm,
+                                                     narrative.DailyCounter(llm_daily_cap), a.clock)
 
 
 @lru_cache(maxsize=1)
 def get_container() -> Container:
     s = get_settings()
-    return Container(production_adapters(s), invs.StorageLimits(s.max_investigations, s.investigation_ttl_days))
+    return Container(production_adapters(s), invs.StorageLimits(s.max_investigations, s.investigation_ttl_days),
+                     llm_daily_cap=s.llm_max_calls_per_day)

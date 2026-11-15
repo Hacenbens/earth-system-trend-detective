@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Download, FileCode2, FileSpreadsheet, Image as ImageIcon, Printer } from 'lucide-react';
 import { SCIENTIFIC_REFERENCES } from '@/app/api/dashboardData';
-import { pText, scaler, senEnds, signed, useLiveMechanisms, useLiveReport } from '@/lib/liveLayers';
+import { pText, scaler, senEnds, signed, useLiveMechanisms, useLiveReport, useNarrative } from '@/lib/liveLayers';
 import { TrendChart } from '@/components/charts/StatCharts';
 import { buildFindings } from '@/components/report/findings';
 import { FindingTiles, Headline } from '@/components/report/KeyFindings';
+import { NarrativePanel } from '@/components/report/NarrativePanel';
 import { PrintReport } from '@/components/report/PrintReport';
 
 // ---- live feed (backend report.json): sentences and series for the report and the exports
@@ -57,6 +58,7 @@ export function ScientificReportPage({ investigation, datasets, onGoToExport }) 
   const isLive = live.status === 'ready' && !!live.main;
   const mech = useLiveMechanisms();
   const findings = isLive ? buildFindings(live, mech.status === 'ready' ? mech.mechanisms : [], investigation) : null;
+  const { state: narrativeState } = useNarrative(investigation);
   return (
     <article className="rounded-[28px] bg-[#FBFAF6] border border-[#E6E0D2] p-6 sm:p-10 shadow-[0_20px_50px_rgba(19,29,56,0.06)] space-y-8 print:shadow-none print:border-none">
       {/* Report Header */}
@@ -91,6 +93,7 @@ export function ScientificReportPage({ investigation, datasets, onGoToExport }) 
             <Headline parts={findings.headline} className="mt-2 text-[16px] leading-[1.7] text-[#f4f1ea]" />
           </div>
           <FindingTiles tiles={findings.tiles} />
+          <NarrativePanel investigation={investigation} />
           <div className="rounded-[22px] bg-[#131D38] p-5">
             <TrendChart
               points={(findings.main.series || []).filter((q) => q.value != null).map((q) => ({ x: Number(q.date), y: q.value }))}
@@ -220,6 +223,14 @@ export function ScientificReportPage({ investigation, datasets, onGoToExport }) 
         </section>
       </div>
       </details>
+      {/* printing from this page gives the same metric-based PDF as the export page */}
+      <PrintReport
+        investigation={investigation}
+        live={live}
+        findings={findings}
+        narrative={narrativeState.status === 'ready' ? narrativeState.data : null}
+        options={{ includeCharts: true, includeProvenance: true, includeLimitations: true, includeReferences: true }}
+      />
     </article>
   );
 }
@@ -247,6 +258,7 @@ export function ReportExportPage({ investigation, datasets, onShowToast }) {
   const [includeReferences, setIncludeReferences] = useState(true);
   const mech = useLiveMechanisms();
   const findings = isLive ? buildFindings(live, mech.status === 'ready' ? mech.mechanisms : [], investigation) : null;
+  const { state: narrativeState } = useNarrative(investigation);
 
   const downloadBlob = (content, filename, mime) => {
     const blob = new Blob([content], { type: mime });
@@ -468,7 +480,7 @@ export function ReportExportPage({ investigation, datasets, onShowToast }) {
         investigation={investigation}
         live={live}
         findings={findings}
-        narrative={null}
+        narrative={narrativeState.status === 'ready' ? narrativeState.data : null}
         options={{ includeCharts, includeProvenance, includeLimitations, includeReferences }}
       />
     </div>

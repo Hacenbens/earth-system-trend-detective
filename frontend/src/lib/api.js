@@ -112,6 +112,14 @@ export const project = (id, body = {}, opts) =>
 export const solve = (id, body = {}, opts) =>
   request(`/investigations/${encodeURIComponent(id)}/solve`, { ...opts, method: "POST", body });
 
+/** AI narrative over the warehouse (backend checks every number). */
+export const generateNarrative = (id, question, opts) =>
+  request(`/investigations/${encodeURIComponent(id)}/narrative`, {
+    ...opts,
+    method: 'POST',
+    body: { question: question || null },
+    timeoutMs: 120000,
+  });
 export const getReport = (id, opts) => request(`/investigations/${encodeURIComponent(id)}/report.json`, opts);
 export const getReportCsv = (id, opts) => request(`/investigations/${encodeURIComponent(id)}/report.csv`, opts);
 export const reportJsonUrl = (id) => `${API}/investigations/${encodeURIComponent(id)}/report.json`;

@@ -42,7 +42,8 @@ def create_app() -> FastAPI:
     app.add_middleware(ProtectionMiddleware, max_body_bytes=settings.max_body_bytes,
                        limiter=SlidingWindowRateLimiter(settings.rate_limit_per_minute, RATE_LIMIT_WINDOW_SECONDS),
                        heavy_limiter=SlidingWindowRateLimiter(settings.rate_limit_heavy_per_minute, RATE_LIMIT_WINDOW_SECONDS),
-                       trust_proxy_headers=settings.trust_proxy_headers)
+                       trust_proxy_headers=settings.trust_proxy_headers,
+                       llm_limiter=SlidingWindowRateLimiter(settings.llm_rate_limit_per_hour, 3600))
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.cors_origins), allow_methods=["GET", "POST"],
                        allow_headers=["Content-Type", REQUEST_ID_HEADER, API_KEY_HEADER],

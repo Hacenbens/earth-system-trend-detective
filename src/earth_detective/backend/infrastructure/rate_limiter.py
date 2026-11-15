@@ -23,6 +23,10 @@ class SlidingWindowRateLimiter:
     def limit(self) -> int:
         return self._limit
 
+    @property
+    def window(self) -> float:
+        return self._window
+
     def hit(self, key: str) -> tuple[bool, int]:
         """Record one request. Returns (allowed, retry_after_seconds); a refused request is not counted."""
         now = self._clock()

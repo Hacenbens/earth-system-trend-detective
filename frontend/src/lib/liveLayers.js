@@ -9,12 +9,13 @@
  * - Returns { status: 'idle' | 'loading' | 'ready' | 'unavailable' | 'error', ... }: pages keep their placeholders
  *   unless status === 'ready'.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 
 import {
   ApiError,
   createInvestigation,
   detect,
+  generateNarrative,
   getDatasets,
   getInvestigation,
   getMechanisms,
@@ -433,5 +434,45 @@ export async function linkBackendInvestigation(investigation) {
   } catch (e) {
     return { linked: false, reason: e?.message || 'backend not reachable' };
   }
+}
+
+// ---- AI narrative (POST /narrative): one shared store per investigation so the report and the PDF see the same text
+
+const narratives = new Map(); // investigation id -> { status, data?, error? }
+const listeners = new Set();
+const emit = () => listeners.forEach((l) => l());
+const subscribeNarratives = (l) => {
+  listeners.add(l);
+  return () => listeners.delete(l);
+};
+const IDLE = { status: 'idle' };
+
+/** { state: {status: idle|loading|ready|error, data, error}, generate(question) } */
+export function useNarrative(investigation) {
+  const id = investigation?.id;
+  const state = useSyncExternalStore(subscribeNarratives, () => narratives.get(id) ?? IDLE, () => IDLE);
+  const generate = useCallback(
+    async (question) => {
+      const support = backendSupport(investigation);
+      if (!support.supported) {
+        narratives.set(id, { status: 'error', error: { message: support.reasons.join(' ') } });
+        emit();
+        return;
+      }
+      narratives.set(id, { status: 'loading' });
+      emit();
+      try {
+        await fetchReport(investigation, support.region); // every layer has run, so the model has all results
+        const backendId = await ensureBackendInvestigation(investigation, support.region);
+        const data = await generateNarrative(backendId, question);
+        narratives.set(id, { status: 'ready', data });
+      } catch (error) {
+        narratives.set(id, { status: 'error', error });
+      }
+      emit();
+    },
+    [id, investigation]
+  );
+  return { state, generate };
 }
 

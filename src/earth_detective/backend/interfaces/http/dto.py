@@ -63,6 +63,14 @@ class ExplainDTO(BaseModel):
                               t(self.contradicting_evidence_ids), t(self.alternatives), self.interpretation, self.confidence)
 
 
+class NarrativeDTO(BaseModel):
+    question: str | None = Field(None, max_length=500, description="Optional question about this investigation")
+
+    def to_command(self, inv_id: str):
+        from ...application.narrative import NarrativeCommand
+        return NarrativeCommand(inv_id, self.question)
+
+
 class StressDTO(BaseModel):
     type: Literal["linear"] = "linear"
     delta_per_year: float = 0.0
