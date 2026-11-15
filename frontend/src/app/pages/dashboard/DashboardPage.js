@@ -31,6 +31,7 @@ import { CommandPaletteModal, TourModal } from '@/app/pages/dashboard/DashboardM
 import { InvestigationsLibraryPage } from '@/app/pages/investigations/InvestigationsLibraryPage';
 import { CreateInvestigationWizard } from '@/app/pages/investigations/CreateInvestigationWizard';
 import { DatasetCataloguePage } from '@/app/pages/datasets/DatasetCataloguePage';
+import { useLiveCatalogue } from '@/lib/liveLayers';
 import { DataPrepPage } from '@/app/pages/investigations/DataPrepPage';
 import {
   InvestigationHeader,
@@ -84,6 +85,8 @@ export function DashboardPage({
     loadList(INVESTIGATIONS_STORAGE_KEY, INITIAL_INVESTIGATIONS)
   );
   const [datasets, setDatasets] = useState(() => loadList(DATASETS_STORAGE_KEY, INITIAL_DATASETS));
+  // Warehouse facts from the backend API (src/lib/liveLayers.js); the stored list above is unchanged.
+  const liveDatasets = useLiveCatalogue(datasets);
   const [reports] = useState(INITIAL_REPORTS);
 
   const [tourDismissed, setTourDismissed] = useState(() => {
@@ -349,7 +352,7 @@ export function DashboardPage({
 
   const activeDatasetDetailId =
     workspaceRoute.kind === 'datasets' && workspaceRoute.slug
-      ? (datasets.find((d) => d.slug === workspaceRoute.slug || d.id === workspaceRoute.slug)?.id ??
+      ? (liveDatasets.find((d) => d.slug === workspaceRoute.slug || d.id === workspaceRoute.slug)?.id ??
         null)
       : null;
 
@@ -708,7 +711,7 @@ export function DashboardPage({
             <DashboardBento
               isFirstVisit={!tourDismissed}
               investigations={investigations}
-              datasets={datasets}
+              datasets={liveDatasets}
               loading={loading}
               onNewInvestigation={() => onNavigatePath('/investigations/new')}
               onStartTour={() => setTourOpen(true)}
@@ -739,7 +742,7 @@ export function DashboardPage({
             />
           ) : workspaceRoute.kind === 'new_investigation' ? (
             <CreateInvestigationWizard
-              datasets={datasets}
+              datasets={liveDatasets}
               isGuest={isGuest}
               onExit={() => onNavigatePath('/investigations')}
               onOpenDatasetDetail={(ds) => onNavigatePath(`/datasets/${ds.slug}`)}
@@ -759,7 +762,7 @@ export function DashboardPage({
             />
           ) : workspaceRoute.kind === 'datasets' ? (
             <DatasetCataloguePage
-              datasets={datasets}
+              datasets={liveDatasets}
               initialDetailId={activeDatasetDetailId}
               onUpdateStatus={handleUpdateDatasetStatus}
               onUseInInvestigation={(ds) => {
@@ -769,7 +772,7 @@ export function DashboardPage({
               onShowToast={(msg) => onShowToast(msg)}
             />
           ) : workspaceRoute.kind === 'methodology' ? (
-            <MethodologyPage datasets={datasets} />
+            <MethodologyPage datasets={liveDatasets} />
           ) : workspaceRoute.kind === 'references' ? (
             <ReferencesPage />
           ) : workspaceRoute.kind === 'investigation_detail' && activeInvDetail ? (
@@ -803,7 +806,7 @@ export function DashboardPage({
               {workspaceRoute.subView === 'data' && (
                 <DataPrepPage
                   investigation={activeInvDetail}
-                  datasets={datasets}
+                  datasets={liveDatasets}
                   onUpdateInvestigation={(patch) =>
                     handleUpdateInvestigation(activeInvDetail.id, patch)
                   }
@@ -893,7 +896,7 @@ export function DashboardPage({
               {workspaceRoute.subView === 'report' && (
                 <ScientificReportPage
                   investigation={activeInvDetail}
-                  datasets={datasets}
+                  datasets={liveDatasets}
                   onGoToExport={() =>
                     onNavigatePath(`/investigations/${activeInvDetail.id}/export`)
                   }
@@ -904,7 +907,7 @@ export function DashboardPage({
               {workspaceRoute.subView === 'export' && (
                 <ReportExportPage
                   investigation={activeInvDetail}
-                  datasets={datasets}
+                  datasets={liveDatasets}
                   onShowToast={(msg) => onShowToast(msg)}
                 />
               )}
@@ -930,7 +933,7 @@ export function DashboardPage({
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         investigations={investigations}
-        datasets={datasets}
+        datasets={liveDatasets}
         reports={reports}
         onSelectInvestigation={(inv) => openInvestigationTarget(inv, 'continue')}
         onSelectDataset={() => onNavigatePath('/datasets')}

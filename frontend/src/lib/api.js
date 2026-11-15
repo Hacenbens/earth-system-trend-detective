@@ -112,6 +112,8 @@ export const project = (id, body = {}, opts) =>
 export const solve = (id, body = {}, opts) =>
   request(`/investigations/${encodeURIComponent(id)}/solve`, { ...opts, method: "POST", body });
 
+export const getReport = (id, opts) => request(`/investigations/${encodeURIComponent(id)}/report.json`, opts);
+export const getReportCsv = (id, opts) => request(`/investigations/${encodeURIComponent(id)}/report.csv`, opts);
 export const reportJsonUrl = (id) => `${API}/investigations/${encodeURIComponent(id)}/report.json`;
 export const reportCsvUrl = (id) => `${API}/investigations/${encodeURIComponent(id)}/report.csv`;
 export const docsUrl = `${API_URL}/docs`;

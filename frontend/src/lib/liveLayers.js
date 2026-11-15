@@ -9,9 +9,21 @@
  * - Returns { status: 'idle' | 'loading' | 'ready' | 'unavailable' | 'error', ... }: pages keep their placeholders
  *   unless status === 'ready'.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { ApiError, createInvestigation, detect, getInvestigation, getMechanisms, investigate, project, solve } from './api';
+import {
+  ApiError,
+  createInvestigation,
+  detect,
+  getDatasets,
+  getInvestigation,
+  getMechanisms,
+  getReport,
+  getReportCsv,
+  investigate,
+  project,
+  solve,
+} from './api';
 
 const ID_MAP_KEY = 'earthsignal_backend_ids_v1';
 export const EXTREME_METRICS = ['Rx1day', 'R95p', 'SDII', 'CDD'];
@@ -257,5 +269,117 @@ export function useLiveProject(investigation) {
 /** Layer 5: { status, comparison [...], note } */
 export function useLiveSolve(investigation) {
   return useLive(investigation, fetchSolve, (d) => ({ comparison: d.comparison || [], note: d.note }));
+}
+
+// ---- Data catalogue: the app's dataset records enriched with warehouse facts (GET /datasets)
+
+// app dataset id -> warehouse dataset codes
+const DATASET_LINKS = {
+  'gpm-imerg-v07': ['imerg_final_monthly', 'imerg_final_daily', 'imerg_late_daily'],
+  'merra2-reanalysis': ['merra2_monthly', 'merra2_plevel_monthly'],
+  'earthcare-cpr': ['earthcare_l2'],
+  'earthcare-atlid': ['earthcare_l2'],
+  'modis-aod-ndvi': [],
+};
+const year = (s) => (s ? Number(String(s).slice(0, 4)) : undefined);
+
+function chirpsRecord(w) {
+  return {
+    id: 'chirps-v3',
+    slug: 'chirps-v3',
+    name: 'CHIRPS v3',
+    agency: 'UCSB CHC',
+    product: `${w.product} · ${w.version}`,
+    role: 'Independent check',
+    roleType: 'supporting',
+    resolution: w.resolution,
+    temporalResolution: 'Monthly',
+    coverageStart: year(w.coverage_start),
+    coverageEnd: year(w.coverage_end),
+    geographicCoverage: '50°S–50°N land',
+    sourceUrl: 'https://www.chc.ucsb.edu/data/chirps3',
+    status: 'Used',
+    variables: [{ name: 'precip', units: 'mm/month', description: 'Satellite + station blended precipitation' }],
+    usageBullets: ['Independent check of every IMERG rainfall trend (same region, same season)'],
+    limitations: ['Station density over the Sahel is low; the blend leans on satellite estimates there.'],
+    notes: '',
+    verificationLog: [{ status: 'Used', date: '2026-11-15', by: 'Warehouse build' }],
+    citation: `${w.name}. ${w.agency}. ${w.doi || ''}`.trim(),
+  };
+}
+
+function enrichDatasets(datasets, warehouse) {
+  const byCode = Object.fromEntries(warehouse.map((w) => [w.code, w]));
+  const out = datasets.map((d) => {
+    const codes = DATASET_LINKS[d.id];
+    if (!codes) return d;
+    const ws = codes.map((c) => byCode[c]).filter(Boolean);
+    if (!ws.length) {
+      return { ...d, notes: `${d.notes ?? ''} Not in the analysis warehouse yet.`.trim() };
+    }
+    const main = ws[0];
+    const obs = ws.reduce((s, w) => s + (w.observations || 0), 0);
+    return {
+      ...d,
+      product: [...new Set(ws.map((w) => w.product))].join(' / ') + ` · ${main.version}`,
+      resolution: main.resolution,
+      coverageStart: Math.min(...ws.map((w) => year(w.coverage_start)).filter(Boolean)),
+      coverageEnd: Math.max(...ws.map((w) => year(w.coverage_end)).filter(Boolean)),
+      notes: `${d.notes ?? ''} Analysis warehouse: ${ws.map((w) => w.code).join(', ')}${obs ? ` · ${obs} observations` : ''} · access ${main.access}${main.doi ? ` · DOI ${main.doi}` : ''}.`.trim(),
+      warehouse: ws,
+    };
+  });
+  if (byCode.chirps_v3_monthly && !out.some((d) => d.id === 'chirps-v3')) out.push(chirpsRecord(byCode.chirps_v3_monthly));
+  return out;
+}
+
+let datasetsPromise = null;
+/** Returns the datasets enriched with the warehouse facts, or the input unchanged until/unless the API answers. */
+export function useLiveCatalogue(datasets) {
+  const [warehouse, setWarehouse] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    datasetsPromise = datasetsPromise || getDatasets().catch((e) => {
+      datasetsPromise = null;
+      throw e;
+    });
+    datasetsPromise.then((w) => alive && setWarehouse(w)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return useMemo(() => (warehouse ? enrichDatasets(datasets, warehouse) : datasets), [datasets, warehouse]);
+}
+
+// ---- Report: run every layer (cached), then the backend report.json + report.csv
+
+function fetchReport(inv, region) {
+  return once(`report:${inv.id}:${configKey(inv, region)}`, async () => {
+    const [, , rainProjection] = await Promise.all([
+      fetchDetect(inv, region),
+      fetchInvestigate(inv, region),
+      fetchProject(inv, region, 'rain_total'),
+      fetchSolve(inv, region),
+    ]);
+    const id = await ensureBackendInvestigation(inv, region);
+    const [json, csv] = await Promise.all([getReport(id), getReportCsv(id)]);
+    // the backend keeps the latest projection only (the Project page may also run Rx1day): report the rainfall one
+    return { json: { ...json, future_scenarios: rainProjection }, csv };
+  });
+}
+
+/** { status, report (backend report.json), csv (string), main (rain_total trend), comparisons, scenarios } */
+export function useLiveReport(investigation) {
+  return useLive(investigation, fetchReport, ({ json, csv }, region) => {
+    const trends = json.trend_detection?.results || [];
+    return {
+      report: json,
+      csv,
+      main: trends.find((r) => r.metric === 'rain_total' && r.region_id === region) || null,
+      trends: trends.filter((r) => r.region_id === region),
+      comparisons: (json.environmental_investigation?.comparisons || []).filter((c) => c.region_id === region),
+      scenarios: json.future_scenarios || null,
+    };
+  });
 }
 
