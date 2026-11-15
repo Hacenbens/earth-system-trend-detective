@@ -56,6 +56,11 @@ class InvestigationRepository(Protocol):
     def list(self) -> list[dict[str, Any]]: ...
 
 
+class InvestigationHousekeeping(Protocol):
+    def count(self) -> int: ...
+    def purge_older_than(self, iso_timestamp: str) -> int: ...
+
+
 class TrendAnalyzer(Protocol):
     def analyze(self, series: dict[int, float], full: bool = True) -> TrendStats:
         """full=False: Mann-Kendall + Sen only (no OLS/AR(1) cross-checks); for sensitivity tables and side checks."""

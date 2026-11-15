@@ -100,12 +100,23 @@ class InMemoryInvestigations:
     def list(self):
         return [{"id": i} for i in self.items]
 
+    def count(self):
+        return len(self.items)
+
+    def purge_older_than(self, iso_timestamp):
+        old = [i for i, inv in self.items.items() if (inv.updated_at or inv.created_at) < iso_timestamp]
+        for i in old:
+            del self.items[i]
+        return len(old)
+
 
 class FixedClock:
     def now(self): return "2026-11-15T00:00:00+00:00"
 
 
-def adapters():
+def adapters(store=None, clock=None):
     from earth_detective.backend.interfaces.http.container import Adapters
+    store = store or InMemoryInvestigations()
     return Adapters(FakeCatalogue(), FakeObservations(), None, FakeMechanisms(), FakeCases(), FakeBuild(), FakeReferences(),
-                    FakeInterventions(), InMemoryInvestigations(), MannKendallTrendAnalyzer(), DetrendedSpearmanAnalyzer(), FixedClock())
+                    FakeInterventions(), store, MannKendallTrendAnalyzer(), DetrendedSpearmanAnalyzer(), clock or FixedClock(),
+                    housekeeping=store)

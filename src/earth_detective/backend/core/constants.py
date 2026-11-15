@@ -27,6 +27,12 @@ REQUEST_ID_MAX_LENGTH = 64          # cap on an incoming X-Request-ID header
 # ---- HTTP
 API_PREFIX = "/api/v1"
 REQUEST_ID_HEADER = "X-Request-ID"
+API_KEY_HEADER = "X-API-Key"
+RATE_LIMIT_WINDOW_SECONDS = 60
+# endpoints that cost CPU (trend fits) or write storage: stricter per-client limit
+HEAVY_ENDPOINT_SUFFIXES = ("/detect", "/investigate", "/project")
+SECURITY_HEADERS = {"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "no-referrer",
+                    "Cache-Control": "no-store"}
 
 # ---- logging
 LOG_FILE_MAX_BYTES = 5_000_000

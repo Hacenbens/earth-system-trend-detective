@@ -11,7 +11,7 @@ from ...application import layers, report
 from ...core.settings import Settings, get_settings
 from ...application.services import InvestigationLoader, RegionValidator, SeriesSelector, TrendAssessor
 from ...domain.ports import (AssociationAnalyzer, BuildInfoReader, CaseStudyReader, CatalogueReader, Clock, DatasetReferenceReader,
-                             InterventionCatalogue, InvestigationRepository, MechanismReader, ObservationReader,
+                             InterventionCatalogue, InvestigationHousekeeping, InvestigationRepository, MechanismReader, ObservationReader,
                              PrecomputedTrendReader, TrendAnalyzer)
 from ...infrastructure.adapters import (DetrendedSpearmanAnalyzer, JsonInvestigationRepository, MannKendallTrendAnalyzer,
                                         StaticInterventionCatalogue, SystemClock)
@@ -33,21 +33,22 @@ class Adapters:
     trend_analyzer: TrendAnalyzer
     association: AssociationAnalyzer
     clock: Clock
+    housekeeping: InvestigationHousekeeping | None = None
 
 
 def production_adapters(settings: Settings) -> Adapters:
     db = SqliteWarehouse(settings.warehouse_path)
-    store_dir = settings.investigations_dir
+    store = JsonInvestigationRepository(settings.investigations_dir)
     return Adapters(SqliteCatalogueRepository(db), SqliteObservationRepository(db), SqlitePrecomputedTrendRepository(db),
                     SqliteMechanismRepository(db), SqliteCaseStudyRepository(db), SqliteBuildInfoRepository(db),
-                    SqliteDatasetReferenceRepository(db), StaticInterventionCatalogue(), JsonInvestigationRepository(store_dir),
-                    MannKendallTrendAnalyzer(), DetrendedSpearmanAnalyzer(), SystemClock())
+                    SqliteDatasetReferenceRepository(db), StaticInterventionCatalogue(), store,
+                    MannKendallTrendAnalyzer(), DetrendedSpearmanAnalyzer(), SystemClock(), housekeeping=store)
 
 
 class Container:
     """Builds every use case from a set of adapters (dependency injection by constructor)."""
 
-    def __init__(self, a: Adapters):
+    def __init__(self, a: Adapters, limits: invs.StorageLimits = invs.StorageLimits()):
         regions = RegionValidator(a.catalogue)
         loader = InvestigationLoader(a.investigations)
         selector = SeriesSelector(a.catalogue, a.observations)
@@ -62,7 +63,8 @@ class Container:
         self.list_interventions = cat.ListInterventions(a.interventions)
         self.build_info = cat.GetBuildInfo(a.build)
         # investigations
-        self.create_investigation = invs.CreateInvestigation(a.investigations, regions, selector, a.clock)
+        self.create_investigation = invs.CreateInvestigation(a.investigations, regions, selector, a.clock,
+                                                            a.housekeeping, limits)
         self.get_investigation = invs.GetInvestigation(loader)
         self.list_investigations = invs.ListInvestigations(a.investigations)
         # layers
@@ -79,4 +81,5 @@ class Container:
 
 @lru_cache(maxsize=1)
 def get_container() -> Container:
-    return Container(production_adapters(get_settings()))
+    s = get_settings()
+    return Container(production_adapters(s), invs.StorageLimits(s.max_investigations, s.investigation_ttl_days))

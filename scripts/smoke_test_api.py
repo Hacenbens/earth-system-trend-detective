@@ -4,9 +4,11 @@ Drafted with AI assistance (Claude Code). See docs/submission/si_usage.md.
 Usage:  make api            (in another terminal)
         .venv/bin/python scripts/smoke_test_api.py [http://127.0.0.1:8000]
 Checks every endpoint, the scientific values against the evidence ledger, the uniform error format, request-id and
-CORS headers. Exit code 0 = all checks passed.
+CORS headers. Exit code 0 = all checks passed. If the server has TEAM_API_KEY set, export the same value as
+SMOKE_API_KEY so the /explain checks can authenticate.
 """
 import json
+import os
 import sys
 import time
 import urllib.error
@@ -20,7 +22,8 @@ results: list[tuple[str, bool, str]] = []
 
 def call(method, url, body=None, headers=None):
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(url, data=data, method=method, headers={"Content-Type": "application/json", **(headers or {})})
+    auth = {"X-API-Key": os.environ["SMOKE_API_KEY"]} if os.environ.get("SMOKE_API_KEY") else {}
+    req = urllib.request.Request(url, data=data, method=method, headers={"Content-Type": "application/json", **auth, **(headers or {})})
     t0 = time.perf_counter()
     try:
         with urllib.request.urlopen(req, timeout=60) as r:

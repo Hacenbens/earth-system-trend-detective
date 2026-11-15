@@ -98,6 +98,24 @@ Example (`LOG_FORMAT=text`):
 02:20:40 INFO    [demo-123] earth_detective.backend.access: request | event=http.access method=GET path=/api/v1/regions status=200 duration_ms=0.8
 ```
 
+## 4b. Protections (public demo)
+The judges need a public link without login, so the API stays open for reading and running analyses, with limits against abuse. All limits are settings (environment variables, `core/settings.py`); errors use the usual `{error: {kind, message, details, request_id}}` body.
+
+| Protection | Where | Setting (default) | Refusal |
+|---|---|---|---|
+| Rate limit, all endpoints, per client IP | `infrastructure/rate_limiter.py` + `ProtectionMiddleware` | `RATE_LIMIT_PER_MINUTE` (120) | 429 `rate_limited`, `Retry-After` header |
+| Rate limit, heavy endpoints (create, detect, investigate, project) | same | `RATE_LIMIT_HEAVY_PER_MINUTE` (20) | 429 `rate_limited`, `details.scope = "heavy"` |
+| Request body size | `ProtectionMiddleware` | `MAX_BODY_BYTES` (32768); chunked bodies without `Content-Length` refused | 413 `payload_too_large` |
+| Storage cap | `CreateInvestigation` (business rule, `InvestigationHousekeeping` port) | `MAX_INVESTIGATIONS` (500) | 503 `capacity` |
+| Expiry | `CreateInvestigation` deletes investigations idle longer than the TTL before checking the cap | `INVESTIGATION_TTL_DAYS` (7) | — |
+| Team key on `POST /explain` (expert confirmation) | `require_team_key` dependency, constant-time compare | `TEAM_API_KEY` (unset = open, warning logged at start) | 401 `unauthorized` |
+| Security headers on every response | `RequestContextMiddleware` | `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` | — |
+| Client IP behind a proxy | `client_ip()` | `TRUST_PROXY_HEADERS` (false): only enable behind your own reverse proxy, the header is easy to forge | — |
+
+Middleware order (outermost first): CORS → request context (request id, access log, security headers) → protection → routes, so refused requests are still logged with a request id and carry CORS headers. Start-up logs the settings without secrets (`Settings.describe()` reports only `team_api_key_set`).
+
+Limits of this design: the rate limiter lives in one process's memory (several workers or servers need a shared store such as Redis); per-IP limits can be bypassed by an attacker with many addresses, so put the public deployment behind a platform with its own DDoS protection.
+
 ## 5. Request flow (detect)
 `POST /api/v1/investigations/{id}/detect` → router → `DetectDTO.to_command()` → `DetectTrends.execute(cmd)` → `InvestigationLoader` (Result) → `RegionValidator` (Result) → `TrendAssessor` per region × metric (`SeriesSelector` + `TrendAnalyzer` port) → save through `InvestigationRepository` → `Ok(result)` → `to_response()` → JSON.
 
@@ -105,7 +123,8 @@ Example (`LOG_FORMAT=text`):
 - `make smoke` (with `make api` running): **47 live end-to-end checks** (`scripts/smoke_test_api.py`, standard library only): every endpoint, the scientific values against the evidence ledger (E-005, E-006, E-007, E-008, E-010), every error kind and its HTTP code, request-id generation/echo, CORS preflight, 24 concurrent requests. Last run 2026-11-15: 47/47 passed; JSON log file: 80 valid lines, request traced from use-case event to access line.
 - Start-up failures are explicit: missing warehouse -> "Warehouse not found at … Build it with `make warehouse`"; invalid `LOG_FORMAT` -> ValueError listing the allowed values.
 - Performance: `/detect` for 4 regions x (2 metrics + extremes) = 13 results takes ~1.4 s (was 4.5 s): sensitivity tables and independent checks use the Mann–Kendall/Sen-only mode (`TrendAnalyzer.analyze(full=False)`, identical MK/Sen values); the OLS/AR(1) cross-checks run once per main result.
-- `make test`: 14 unit tests (domain rules, Result, every use case) on in-memory adapters.
+- `make test`: 24 unit tests (domain rules, Result, every use case, rate limiter, storage cap and expiry, JSON store housekeeping, settings validation) on in-memory adapters.
+- `make smoke-protections`: starts its own server with low limits and a throwaway team key; **10 live checks** (security headers, 413, 503 capacity, 401 without/with wrong key, key accepted, heavy 429 with `Retry-After` while light endpoints still answer, general 429). Last run 2026-11-15: 10/10 passed. `make smoke` still passes 47/47 with the default limits (export `SMOKE_API_KEY` when the server has `TEAM_API_KEY`).
 - End-to-end check (2026-11-15): every endpoint returned the same numbers as the previous implementation (e.g. Sahel +3.1 %/decade p = 0.161; east CHIRPS +7.9 % p = 0.026; east dry spell −9.6 % p = 0.001).
 - Dependency rule (also: `core/` imports no other backend package and no framework; `os.environ` appears only in `core/settings.py`): `grep -rnE "from \.\.(application|infrastructure|interfaces)|import (fastapi|sqlite3|pydantic)" src/earth_detective/backend/domain` returns nothing (same for `application/` against infrastructure and frameworks).
 - Not yet: HTTP-level tests (need `httpx` for FastAPI's TestClient).

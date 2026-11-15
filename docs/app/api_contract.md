@@ -63,6 +63,20 @@ Base path `/api/v1`. All requests and responses are JSON. Every response carries
   "limitations": ["Daily tail not homogeneous across 2014 (E-006)"] }
 ```
 
+### Access and errors
+No login for reading and running analyses. `POST /investigations/{id}/explain` needs header `X-API-Key: <team key>` when the server sets `TEAM_API_KEY`. Every error: `{error: {kind, message, details, request_id}}`.
+
+| kind | HTTP | When |
+|---|---|---|
+| `validation`, `not_available` | 422 | bad input / data not available |
+| `not_found` | 404 | unknown id |
+| `conflict` | 409 | a required previous layer is missing |
+| `unauthorized` | 401 | missing or wrong team key on `/explain` |
+| `payload_too_large` | 413 | body above `MAX_BODY_BYTES` (32 KB) |
+| `rate_limited` | 429 | above 120 requests/min per IP, or 20/min on create/detect/investigate/project; wait `Retry-After` seconds |
+| `capacity` | 503 | investigation store full (500; idle ones deleted after 7 days) |
+| `unexpected` | 500 | server fault; quote the `request_id` |
+
 ### Global
 
 | Method | Path | Returns |

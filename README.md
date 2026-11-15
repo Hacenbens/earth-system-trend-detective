@@ -44,7 +44,8 @@ outputs/figures/    charts and maps for the app and slides
 make warehouse        # build data/warehouse/trend_detective.sqlite from the committed CSVs (~10 s)
 make api              # API on http://127.0.0.1:8000, interactive docs at http://127.0.0.1:8000/docs
 ```
-Endpoints follow `docs/app/api_contract.md`; data model: `docs/app/data_model.md`; architecture (clean architecture, SOLID, Result pattern, logging): `docs/app/backend_architecture.md`. Tests: `make test`.
+The API needs no login for reading and running analyses (judges get a public link), with rate limits, a body-size limit and a storage cap. `POST /explain` (expert confirmation) needs an `X-API-Key` header when `TEAM_API_KEY` is set; ask the team lead for the key. Set it before exposing the server (`make api HOST=0.0.0.0`). Details: `docs/app/backend_architecture.md` §4b.
+Endpoints follow `docs/app/api_contract.md`; data model: `docs/app/data_model.md`; architecture (clean architecture, SOLID, Result pattern, logging): `docs/app/backend_architecture.md`. Tests: `make test`, `make smoke` (server running), `make smoke-protections`.
 
 ## Team rules
 - **Read `docs/decisions/DECISIONS.md` first.** Change scope only via a new decision entry. Never edit an accepted one.

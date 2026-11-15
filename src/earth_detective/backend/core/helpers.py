@@ -5,11 +5,16 @@ import math
 import re
 import uuid
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from .constants import INVESTIGATION_ID_LENGTH, REQUEST_ID_LENGTH, REQUEST_ID_MAX_LENGTH
 
 _ID_PATTERN = re.compile(rf"^[a-f0-9]{{{INVESTIGATION_ID_LENGTH}}}$")
+
+
+def iso_days_before(iso_timestamp: str, days: int) -> str:
+    """ISO timestamp `days` days before the given one (same format as utc_now_iso, so strings compare in time order)."""
+    return (datetime.fromisoformat(iso_timestamp) - timedelta(days=days)).isoformat(timespec="seconds")
 
 
 def utc_now_iso() -> str:

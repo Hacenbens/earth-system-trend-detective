@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 
+from ..core import helpers
 from ..core.constants import FIRST_YEAR, LAST_YEAR, MIN_SEASONS, SEASON_MONTHS
 from ..domain.models import Investigation, InvestigationConfig
-from ..domain.ports import Clock, InvestigationRepository
+from ..domain.ports import Clock, InvestigationHousekeeping, InvestigationRepository
 from ..domain.result import AppError, Err, Ok, Result
 from .commands import CreateInvestigationCommand
 from .services import InvestigationLoader, RegionValidator, SeriesSelector
@@ -19,9 +20,32 @@ def investigation_view(inv: Investigation) -> dict:
             "prepared": inv.prepared, "layers": inv.layers}
 
 
+@dataclass(frozen=True)
+class StorageLimits:
+    max_investigations: int = 500
+    ttl_days: int = 7
+
+
 class CreateInvestigation:
-    def __init__(self, repo: InvestigationRepository, regions: RegionValidator, selector: SeriesSelector, clock: Clock):
+    def __init__(self, repo: InvestigationRepository, regions: RegionValidator, selector: SeriesSelector, clock: Clock,
+                 housekeeping: InvestigationHousekeeping | None = None, limits: StorageLimits = StorageLimits()):
         self._repo, self._regions, self._selector, self._clock = repo, regions, selector, clock
+        self._housekeeping, self._limits = housekeeping, limits
+
+    def _make_room(self) -> Result[None]:
+        """Delete expired investigations, then refuse new ones if the store is still full (public demo protection)."""
+        if self._housekeeping is None:
+            return Ok(None)
+        cutoff = helpers.iso_days_before(self._clock.now(), self._limits.ttl_days)
+        removed = self._housekeeping.purge_older_than(cutoff)
+        if removed:
+            log.info("expired investigations deleted", extra={"event": "investigation.purged", "removed": removed, "before": cutoff})
+        n = self._housekeeping.count()
+        if n >= self._limits.max_investigations:
+            log.warning("investigation store full", extra={"event": "investigation.capacity", "count": n})
+            return Err(AppError.capacity("the investigation store is full; try again later",
+                                         max_investigations=self._limits.max_investigations, ttl_days=self._limits.ttl_days))
+        return Ok(None)
 
     def execute(self, cmd: CreateInvestigationCommand) -> Result[dict]:
         if tuple(sorted(cmd.season)) != SEASON_MONTHS:
@@ -38,6 +62,9 @@ class CreateInvestigation:
         if not sel.is_ok:
             return sel
         s = sel.value
+        room = self._make_room()
+        if not room.is_ok:
+            return room
         expected = cmd.end_year - cmd.start_year + 1
         years = [p.year for p in s.points]
         prepared = {

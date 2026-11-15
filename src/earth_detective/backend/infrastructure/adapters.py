@@ -53,6 +53,26 @@ class JsonInvestigationRepository:
                                   tuple(c.get("season", SEASON_MONTHS)))
         return Investigation(d["id"], d["created_at"], cfg, d["prepared"], d.get("layers", {}), d.get("updated_at"))
 
+    # ---- housekeeping (InvestigationHousekeeping port)
+    def count(self) -> int:
+        return sum(1 for _ in self._dir.glob("*.json")) if self._dir.exists() else 0
+
+    def purge_older_than(self, iso_timestamp: str) -> int:
+        """Delete investigations whose last activity (updated_at, else created_at) is before the timestamp."""
+        if not self._dir.exists():
+            return 0
+        removed = 0
+        for p in self._dir.glob("*.json"):
+            try:
+                d = json.loads(p.read_text())
+                last = d.get("updated_at") or d["created_at"]
+            except (OSError, ValueError, KeyError):
+                continue  # unreadable file: leave it for a human
+            if last < iso_timestamp:
+                p.unlink(missing_ok=True)
+                removed += 1
+        return removed
+
     def list(self) -> list[dict]:
         if not self._dir.exists():
             return []

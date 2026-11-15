@@ -37,6 +37,22 @@ class AppError:
         return cls(ErrorKind.NOT_AVAILABLE, message, details)
 
     @classmethod
+    def unauthorized(cls, message: str, **details) -> AppError:
+        return cls(ErrorKind.UNAUTHORIZED, message, details)
+
+    @classmethod
+    def payload_too_large(cls, message: str, **details) -> AppError:
+        return cls(ErrorKind.PAYLOAD_TOO_LARGE, message, details)
+
+    @classmethod
+    def rate_limited(cls, message: str, **details) -> AppError:
+        return cls(ErrorKind.RATE_LIMITED, message, details)
+
+    @classmethod
+    def capacity(cls, message: str, **details) -> AppError:
+        return cls(ErrorKind.CAPACITY, message, details)
+
+    @classmethod
     def unexpected(cls, message: str, **details) -> AppError:
         return cls(ErrorKind.UNEXPECTED, message, details)
 

@@ -8,6 +8,10 @@ class ErrorKind(StrEnum):
     VALIDATION = "validation"          # the request breaks a business rule
     CONFLICT = "conflict"              # a required previous step has not been done
     NOT_AVAILABLE = "not_available"    # valid request, but the data or feature is not available
+    UNAUTHORIZED = "unauthorized"      # missing or wrong credentials for a protected endpoint
+    PAYLOAD_TOO_LARGE = "payload_too_large"  # request body above the configured limit
+    RATE_LIMITED = "rate_limited"      # too many requests from one client
+    CAPACITY = "capacity"              # the server refuses new work because a storage cap is reached
     UNEXPECTED = "unexpected"          # fault outside the business rules
 
 
