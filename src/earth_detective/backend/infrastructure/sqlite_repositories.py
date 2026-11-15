@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -18,17 +19,29 @@ class WarehouseUnavailable(RuntimeError):
 
 
 class SqliteWarehouse:
-    """Owns the connection (single responsibility); repositories receive it by injection."""
+    """Owns the connections (single responsibility); repositories receive it by injection.
+
+    One read-only connection per thread: FastAPI runs sync endpoints in a thread pool, and a single sqlite3
+    connection shared across threads fails under concurrent requests ("bad parameter or other API misuse")."""
 
     def __init__(self, path: Path):
         if not path.exists():
             raise WarehouseUnavailable(f"Warehouse not found at {path}. Build it with `make warehouse`.")
-        self._con = sqlite3.connect(f"file:{path}?mode=ro", uri=True, check_same_thread=False)
-        self._con.row_factory = sqlite3.Row
+        self._uri = f"file:{path}?mode=ro"
+        self._local = threading.local()
+        self._connection()  # fail fast if the file cannot be opened
         log.info("warehouse opened", extra={"event": "warehouse.opened", "path": str(path)})
 
+    def _connection(self) -> sqlite3.Connection:
+        con = getattr(self._local, "con", None)
+        if con is None:
+            con = sqlite3.connect(self._uri, uri=True)
+            con.row_factory = sqlite3.Row
+            self._local.con = con
+        return con
+
     def rows(self, sql: str, params: tuple = ()) -> list[dict[str, Any]]:
-        return [{k: json_safe(r[k]) for k in r.keys()} for r in self._con.execute(sql, params).fetchall()]
+        return [{k: json_safe(r[k]) for k in r.keys()} for r in self._connection().execute(sql, params).fetchall()]
 
     def one(self, sql: str, params: tuple = ()) -> dict[str, Any] | None:
         r = self.rows(sql, params)
