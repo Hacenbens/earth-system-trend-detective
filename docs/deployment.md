@@ -2,6 +2,13 @@
 
 Drafted with AI assistance (Claude Code). See docs/submission/si_usage.md.
 
+## Live (2026-11-15)
+- App (judges' link): https://earthsignal-murex.vercel.app (Vercel project `earthsignal`, deployed with the CLI from `frontend/`)
+- API: https://earthsignal-api-cba64eb.onrender.com (Render web service from the Docker Hub image
+  `docker.io/hacen123123/earthsignal-api:cba64eb`; health: `/health`)
+- Redeploy the API: build and push a new tag (`docker build --build-arg GIT_COMMIT=<sha> -t hacen123123/earthsignal-api:<sha> .`
+  then `docker push`), and point the Render service at it. Redeploy the front end: `cd frontend && vercel deploy --prod`.
+
 Two parts, two hosts:
 
 | Part | Where | What is deployed |

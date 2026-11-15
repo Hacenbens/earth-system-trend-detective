@@ -55,6 +55,8 @@ cd frontend && npm ci && npm run dev       # http://localhost:3000 (terminal 2)
 The API URL comes from `NEXT_PUBLIC_API_URL` (default `http://127.0.0.1:8000`, see `frontend/.env.example`). API client: `frontend/src/lib/api.js`; screens: Layer 1 detect (`frontend/src/components/DetectWorkbench.js`), Layer 2 investigate (`EvidencePanel.js`, shown under the detect results). Never put `TEAM_API_KEY` in front-end code or `NEXT_PUBLIC_*` variables: they are public.
 
 ## Deploy
+**Live app:** https://earthsignal-murex.vercel.app (API: https://earthsignal-api-cba64eb.onrender.com).
+
 Front end on Vercel (root `frontend/`), API as a Docker image (`Dockerfile`). Steps, settings and checks: `docs/deployment.md`.
 
 ## Team rules
