@@ -87,7 +87,9 @@ export function ScientificReportPage({ investigation, datasets, onGoToExport }) 
             `Evaluates ${investigation.variable} evolution across ${investigation.region} over ${investigation.period}.`}{' '}
           {isLive
             ? `${liveSummary(live)} Layers 4–5 represent conditional sensitivity scenarios and watershed comparisons, never forecasts.`
-            : 'Statistical trend metrics remain clearly labeled as diagnostic placeholders until archive file audits for GPM IMERG Final V07 and MERRA-2 are verified. Layers 4–5 represent conditional sensitivity scenarios and watershed comparisons, never forecasts.'}
+            : live.status === 'unavailable'
+              ? `${live.reason} The sections below are illustrative.`
+              : 'Statistical trend metrics remain clearly labeled as diagnostic placeholders until archive file audits for GPM IMERG Final V07 and MERRA-2 are verified. Layers 4–5 represent conditional sensitivity scenarios and watershed comparisons, never forecasts.'}
         </p>
       </section>
 
@@ -233,6 +235,7 @@ export function ReportExportPage({ investigation, datasets, onShowToast }) {
         : undefined,
       references: includeReferences ? SCIENTIFIC_REFERENCES : undefined,
       backendReport: isLive ? live.report : undefined,
+      analysisCoverage: live.status === 'unavailable' ? live.reason : undefined,
       notice: isLive
         ? 'backendReport holds the computed results (backend API report.json). Layers 4-5 are conditional scenarios, never forecasts.'
         : 'Layers 4-5 are conditional scenarios, never forecasts. Placeholder values require verification.',

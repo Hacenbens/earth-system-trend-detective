@@ -31,7 +31,7 @@ import { CommandPaletteModal, TourModal } from '@/app/pages/dashboard/DashboardM
 import { InvestigationsLibraryPage } from '@/app/pages/investigations/InvestigationsLibraryPage';
 import { CreateInvestigationWizard } from '@/app/pages/investigations/CreateInvestigationWizard';
 import { DatasetCataloguePage } from '@/app/pages/datasets/DatasetCataloguePage';
-import { useLiveCatalogue } from '@/lib/liveLayers';
+import { linkBackendInvestigation, useLiveCatalogue } from '@/lib/liveLayers';
 import { DataPrepPage } from '@/app/pages/investigations/DataPrepPage';
 import {
   InvestigationHeader,
@@ -753,10 +753,15 @@ export function DashboardPage({
                   onShowToast(`Saved "${inv.title}" as draft.`);
                   onNavigatePath('/investigations');
                 } else {
-                  onShowToast(
-                    `Created "${inv.title}". Complete Data Preparation gate before Detect.`
-                  );
                   onNavigatePath(`/investigations/${inv.id}/data`);
+                  // create the backend investigation now and say whether the live analysis covers it
+                  linkBackendInvestigation(inv).then((link) =>
+                    onShowToast(
+                      link.linked
+                        ? `Created "${inv.title}" and linked it to the live analysis (box ${link.box}). Complete Data Preparation gate before Detect.`
+                        : `Created "${inv.title}". Live analysis not available: ${link.reason}`
+                    )
+                  );
                 }
               }}
             />

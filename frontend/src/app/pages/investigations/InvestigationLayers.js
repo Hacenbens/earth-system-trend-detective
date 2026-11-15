@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { AlertTriangle, ArrowRight, CheckCircle2, Info } from 'lucide-react';
 import {
   PROJECTION_END,
+  backendSupport,
   pText,
   scaler,
   senEnds,
@@ -95,7 +96,9 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
               ? `Live · ${liveMain.provenance?.dataset ?? 'NASA data'} via backend API`
               : live.status === 'loading'
                 ? 'Loading NASA results…'
-                : 'Illustrative preview · verify dataset before citing'}
+                : live.status === 'unavailable'
+                  ? 'Not covered by the analysis · illustrative preview'
+                  : 'Illustrative preview · verify dataset before citing'}
           </span>
         </div>
 
@@ -336,7 +339,7 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
 
           <p className="mt-4 text-[12px] text-[#5B6478] leading-[1.5]">
             {liveMain
-              ? `Mann–Kendall + Sen on ${liveMain.provenance?.dataset} ${liveMain.provenance?.version}. Independent check (${liveMain.independent_check?.dataset ?? '—'}): ${signed(liveMain.independent_check?.pct_per_decade)}%/dec, p ${pText(liveMain.independent_check?.p_value)}. Evidence ${(liveMain.evidence_ids || []).join(', ')}.`
+              ? `Mann–Kendall + Sen on ${liveMain.provenance?.dataset} ${liveMain.provenance?.version}. Independent check (${liveMain.independent_check?.dataset ?? '—'}): ${signed(liveMain.independent_check?.pct_per_decade)}%/dec, p ${pText(liveMain.independent_check?.p_value)}. Evidence ${(liveMain.evidence_ids || []).join(', ')}. Analysis box ${backendSupport(investigation).box} (backend preset for ${investigation.region}).`
               : live.status === 'error'
                 ? `Backend unavailable (${live.error?.message ?? 'error'}). Showing the placeholder.`
                 : live.status === 'unavailable'
@@ -782,7 +785,9 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
           <p className="text-[12px] text-[#5B6478]">
             {isLive
               ? `${liveEv.notes.join(' ')} Reanalysis spatial smoothing (0.5°) limits single-variable attribution.`
-              : liveEv.status === 'error'
+              : liveEv.status === 'unavailable'
+                ? `${liveEv.reason} Showing the illustrative table.`
+                : liveEv.status === 'error'
                 ? `Backend unavailable (${liveEv.error?.message ?? 'error'}). Showing the illustrative table.`
                 : 'Limitation: Reanalysis spatial smoothing (0.5°) and MODIS cloud occlusion limit single-variable causal attribution.'}
           </p>
@@ -893,9 +898,14 @@ export function ExplainLayerPage({
   onShowToast,
 }) {
   const liveMech = useLiveMechanisms();
+  // the mechanism cards assess June-September Sahel rainfall: only shown for investigations the analysis covers
+  const support = backendSupport(investigation);
   const mechanisms = useMemo(
-    () => (liveMech.status === 'ready' && liveMech.mechanisms.length ? liveMech.mechanisms.map(liveMechanismCard) : MECHANISMS),
-    [liveMech]
+    () =>
+      support.supported && liveMech.status === 'ready' && liveMech.mechanisms.length
+        ? liveMech.mechanisms.map(liveMechanismCard)
+        : MECHANISMS,
+    [liveMech, support.supported]
   );
   const [selectedMechId, setSelectedMechId] = useState(MECHANISMS[0].id);
   const [confidence, setConfidence] = useState('Medium');
@@ -1005,7 +1015,9 @@ export function ExplainLayerPage({
             </div>
             <p className="text-[12px] text-[#5B6478]">
               {activeMech.alternative ??
-                'Alternative explanation: North Atlantic multidecadal SST variability may modulate decadal amplitude independently of greenhouse warming.'}
+                (support.supported
+                  ? 'Alternative explanation: North Atlantic multidecadal SST variability may modulate decadal amplitude independently of greenhouse warming.'
+                  : `Illustrative cards. Live analysis not available: ${support.reasons.join(' ')}`)}
             </p>
           </div>
 
@@ -1161,6 +1173,7 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
               Pathways below (2025–2050) are diagnostic sensitivity envelopes conditioned on assumed
               climate stresses—not weather predictions.
               {isLiveProj && liveProj.rain.warnings?.length > 1 ? ` ${liveProj.rain.warnings.slice(1).join(' ')}` : ''}
+              {liveProj.status === 'unavailable' ? ` Illustrative pathways. ${liveProj.reason}` : ''}
             </p>
           </div>
         </div>
@@ -1509,6 +1522,7 @@ export function SolveLayerPage({ investigation, onUpdateInvestigation, onNextLay
               soil infiltration parameters, intervention effects remain qualitative sensitivity
               comparisons—not site-certified yield predictions.
               {isLiveSol && liveSol.note ? ` ${liveSol.note}` : ''}
+              {liveSol.status === 'unavailable' ? ` Illustrative cards. ${liveSol.reason}` : ''}
             </div>
           </div>
 

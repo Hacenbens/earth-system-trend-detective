@@ -39,6 +39,42 @@ export function backendRegionFor(investigation) {
   return 'sahel';
 }
 
+// What the backend analysis covers (src/earth_detective/backend/core/constants.py): change both together.
+export const ANALYSIS_FIRST_YEAR = 1998;
+export const ANALYSIS_LAST_YEAR = 2025;
+const MIN_SEASONS = 15;
+const JJAS_MONTHS = [5, 6, 7, 8]; // zero-based, as the app stores months
+const PRESET_BOXES = {
+  sahel: '10–20°N, 18°W–20°E',
+  west: '10–20°N, 18°W–5°W',
+  central: '10–20°N, 5°W–10°E',
+  east: '10–20°N, 10°E–20°E',
+};
+
+/**
+ * Can the backend analyse this investigation? { supported, region, box, reasons[] }.
+ * Unsupported investigations keep the app's placeholders and show the reasons instead of mismatched numbers.
+ */
+export function backendSupport(investigation) {
+  if (!investigation) return { supported: false, region: null, reasons: [] };
+  const reasons = [];
+  const region = backendRegionFor(investigation);
+  if (!region) reasons.push('Custom regions need a live NASA fetch, which is not available yet: choose a preset Sahel region.');
+  const months = Array.isArray(investigation.months) ? [...investigation.months].sort((a, b) => a - b) : null;
+  const isJjas = months ? months.join(',') === JJAS_MONTHS.join(',') : investigation.season === 'June–September';
+  if (!isJjas) reasons.push(`The analysis covers the June–September rainy season only; this investigation uses ${investigation.season || 'other months'}.`);
+  if (!/precip|rain/i.test(investigation.variable || 'Precipitation')) {
+    reasons.push(`The trend analysis is for rainfall; ${investigation.variable} is analysed only as supporting evidence of rainfall (Layer 2).`);
+  }
+  const { startYear: y0, endYear: y1 } = investigation;
+  if (!(y0 >= ANALYSIS_FIRST_YEAR && y1 <= ANALYSIS_LAST_YEAR)) {
+    reasons.push(`The analysis record is ${ANALYSIS_FIRST_YEAR}–${ANALYSIS_LAST_YEAR}; this investigation uses ${y0}–${y1}.`);
+  } else if (y1 - y0 + 1 < MIN_SEASONS) {
+    reasons.push(`A trend test needs at least ${MIN_SEASONS} seasons; ${y0}–${y1} has ${y1 - y0 + 1}.`);
+  }
+  return { supported: reasons.length === 0, region, box: region ? PRESET_BOXES[region] : null, reasons };
+}
+
 function readIdMap() {
   try {
     return JSON.parse(window.localStorage.getItem(ID_MAP_KEY) || '{}');
@@ -139,7 +175,8 @@ function fetchSolve(inv, region) {
 }
 
 function useLive(investigation, fetcher, shape) {
-  const region = backendRegionFor(investigation);
+  const support = backendSupport(investigation);
+  const region = support.supported ? support.region : null;
   const key = investigation ? `${investigation.id}:${region}:${investigation.startYear}-${investigation.endYear}:${!!investigation.extremesEnabled}` : '';
   const [state, setState] = useState({ key: null, status: 'loading' });
 
@@ -157,7 +194,7 @@ function useLive(investigation, fetcher, shape) {
   }, [key]);
 
   if (!investigation) return { status: 'idle' };
-  if (!region) return { status: 'unavailable', reason: 'Custom regions need a live NASA fetch (not available in this version).' };
+  if (!region) return { status: 'unavailable', reason: `Live analysis not available: ${support.reasons.join(' ')}` };
   return state.key === key ? state : { status: 'loading' };
 }
 
@@ -381,5 +418,20 @@ export function useLiveReport(investigation) {
       scenarios: json.future_scenarios || null,
     };
   });
+}
+
+/**
+ * Called when the wizard creates an investigation: creates the backend investigation right away.
+ * Resolves to { linked: true, backendId } or { linked: false, reason }; never throws.
+ */
+export async function linkBackendInvestigation(investigation) {
+  const support = backendSupport(investigation);
+  if (!support.supported) return { linked: false, reason: support.reasons.join(' ') };
+  try {
+    const backendId = await ensureBackendInvestigation(investigation, support.region);
+    return { linked: true, backendId, box: support.box };
+  } catch (e) {
+    return { linked: false, reason: e?.message || 'backend not reachable' };
+  }
 }
 
