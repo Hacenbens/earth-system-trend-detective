@@ -18,3 +18,5 @@ __pycache__/
 outputs/earthcare/catalogue_cache/
 # warehouse is rebuilt from committed processed CSVs: make warehouse
 data/warehouse/
+# API runtime data
+data/app/investigations/

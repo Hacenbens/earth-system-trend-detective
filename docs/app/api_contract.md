@@ -1,5 +1,11 @@
 # Application API contract (v0.1)
 
+> **Status 2026-11-15: implemented** in `src/earth_detective/api/` (FastAPI, reads the star-schema warehouse). Run `make api`, open `/docs`.
+> Added beyond this contract: `GET /api/v1/variables`, `GET /api/v1/series` (stateless chart data), `GET /api/v1/trends` (precomputed 1998–2025 trends),
+> `GET /api/v1/meta/build`, `GET /api/v1/investigations` (list), `GET /health`. Not yet: `GET …/detect/map` (gridded maps) and custom (non-preset) regions.
+> Investigate statuses: `supporting` = significant (p < 0.05) with the sign the mechanism predicts, `contrasting` = significant with the opposite sign, `unclear` otherwise.
+> Explain requires a `reviewer` (who confirmed the assessment).
+
 Built from the team's layer contracts (`docs/team/contribution/layers_contracts.md`) and checked against the decision log and the code that already exists. Stack: FastAPI backend + light JS front-end (D-005).
 Drafted with AI assistance (Claude Code). See `docs/submission/si_usage.md`.
 
