@@ -44,7 +44,7 @@ outputs/figures/    charts and maps for the app and slides
 make warehouse        # build data/warehouse/trend_detective.sqlite from the committed CSVs (~10 s)
 make api              # API on http://127.0.0.1:8000, interactive docs at http://127.0.0.1:8000/docs
 ```
-Endpoints follow `docs/app/api_contract.md`; the data model is in `docs/app/data_model.md`.
+Endpoints follow `docs/app/api_contract.md`; data model: `docs/app/data_model.md`; architecture (clean architecture, SOLID, Result pattern, logging): `docs/app/backend_architecture.md`. Tests: `make test`.
 
 ## Team rules
 - **Read `docs/decisions/DECISIONS.md` first.** Change scope only via a new decision entry. Never edit an accepted one.

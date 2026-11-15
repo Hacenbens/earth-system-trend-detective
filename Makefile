@@ -5,6 +5,7 @@
 #   make analysis    rerun every analysis on local data (needs data/raw, created by the fetch targets)
 #   make fetch       download all inputs (NASA Earthdata login in .env or ~/.netrc; CHIRPS needs no login)
 #   make all         analysis + warehouse
+#   make test        run the backend unit tests (in-memory adapters, no database needed)
 #   make api         run the API on http://127.0.0.1:$(PORT) (docs at /docs); builds the warehouse first if missing
 #
 # Credentials stay in .env / ~/.netrc (git-ignored). EarthCARE needs an ESA MAAP token (see .env.example).
@@ -13,7 +14,7 @@ PY := .venv/bin/python
 
 PORT ?= 8000
 
-.PHONY: api all fetch fetch-imerg fetch-imerg-daily fetch-chirps fetch-merra2 fetch-earthcare analysis cards warehouse clean-warehouse
+.PHONY: test api all fetch fetch-imerg fetch-imerg-daily fetch-chirps fetch-merra2 fetch-earthcare analysis cards warehouse clean-warehouse
 
 all: analysis warehouse
 
@@ -60,4 +61,8 @@ clean-warehouse:
 # ---------- 4. API
 api:
 	@test -f data/warehouse/trend_detective.sqlite || $(MAKE) warehouse
-	$(PY) -m uvicorn earth_detective.api.main:app --app-dir src --host 127.0.0.1 --port $(PORT)
+	$(PY) -m uvicorn earth_detective.backend.interfaces.http.app:app --app-dir src --host 127.0.0.1 --port $(PORT)
+
+# ---------- 5. tests
+test:
+	PYTHONPATH=src $(PY) -m unittest discover -s tests -t . -v
