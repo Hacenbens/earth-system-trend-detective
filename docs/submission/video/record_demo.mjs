@@ -45,6 +45,13 @@ const scrollTo = (text, smooth, offset = 90) => js(`(() => {
   const top = el.getBoundingClientRect().top - (c ? c.getBoundingClientRect().top : 0) + sc.scrollTop - ${offset};
   sc.scrollTo({ top, behavior: ${smooth ? "'smooth'" : "'instant'"} }); return true; })()`);
 
+// centre of the element whose text starts with `text` (viewport coordinates), with an offset
+const at = (text, dx = 0, dy = 0, tag = 'h1,h2,h3,p,div,span,button,summary,label,a') => js(`(() => {
+  const el = [...document.querySelectorAll(${JSON.stringify(tag)})].find(n => n.children.length < 4 && n.innerText && n.innerText.trim().startsWith(${JSON.stringify(text)}));
+  if (!el) return null; const r = el.getBoundingClientRect(); return [Math.round(r.left + r.width / 2 + ${dx}), Math.round(r.top + r.height / 2 + ${dy})]; })()`);
+const move = async (xy, ms = 900) => { if (xy) await js(`window.__cur.moveTo(${xy[0]}, ${xy[1]}, ${ms})`); };
+const ripple = () => js('window.__cur.ripple()');
+const clickText = (text, tag = 'button') => js(`[...document.querySelectorAll(${JSON.stringify(tag)})].find(b => b.textContent.trim().startsWith(${JSON.stringify(text)})).click()`);
 await send('Page.enable'); await send('Runtime.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
 await send('Page.addScriptToEvaluateOnNewDocument', { source: `try {
@@ -52,7 +59,22 @@ await send('Page.addScriptToEvaluateOnNewDocument', { source: `try {
     localStorage.setItem('earthsignal_investigations_v2', ${JSON.stringify(JSON.stringify([INV]))});
     localStorage.setItem('earthsignal_session', JSON.stringify({ mode: 'guest', name: 'Guest researcher' }));
     localStorage.setItem('earthsignal_tour_dismissed_v1', '1');
-  } } catch (e) {}` });
+  } } catch (e) {}
+  // demo cursor: fixed SVG arrow + click ripple (headless recordings have no pointer)
+  const mk = () => {
+    if (document.getElementById('__democursor')) return;
+    const c = document.createElement('div'); c.id = '__democursor';
+    c.style.cssText = 'position:fixed;left:0;top:0;z-index:2147483647;pointer-events:none;width:30px;height:30px;transform:translate(' + (window.__cx||800) + 'px,' + (window.__cy||450) + 'px);transition:transform 900ms cubic-bezier(.22,.8,.26,1);filter:drop-shadow(0 3px 5px rgba(11,18,36,.45))';
+    c.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 2 L3 19 L7.6 14.8 L10.6 21.5 L13.4 20.3 L10.4 13.7 L16.6 13.6 Z" fill="#ffffff" stroke="#131D38" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+    document.documentElement.appendChild(c);
+  };
+  window.__cur = {
+    moveTo(x, y, ms = 900) { mk(); const c = document.getElementById('__democursor'); c.style.transitionDuration = ms + 'ms'; c.style.transform = 'translate(' + x + 'px,' + y + 'px)'; window.__cx = x; window.__cy = y; },
+    ripple() { const r = document.createElement('div'); const x = window.__cx, y = window.__cy;
+      r.style.cssText = 'position:fixed;left:' + (x - 18) + 'px;top:' + (y - 18) + 'px;width:36px;height:36px;border-radius:50%;border:3px solid #ffc20d;background:rgba(255,194,13,.25);z-index:2147483646;pointer-events:none;transform:scale(.3);opacity:1;transition:transform 520ms ease-out,opacity 520ms ease-out';
+      document.documentElement.appendChild(r); requestAnimationFrame(() => { r.style.transform = 'scale(1.6)'; r.style.opacity = '0'; }); setTimeout(() => r.remove(), 600); },
+  };
+  document.addEventListener('DOMContentLoaded', mk);` });
 
 const scenes = [];
 async function record(name, act) {
@@ -64,29 +86,41 @@ async function record(name, act) {
 }
 async function go(path, readyText) { await send('Page.navigate', { url: BASE + path }); await waitText(readyText); await sleep(1200); }
 
-// 1. landing
+// 1. landing (5.4 s): glide to "Start an investigation", hover, click ripple
 await go('/', 'EarthSignal');
-await record('landing', () => sleep(5000));
-// 2. detect: chart, then the tests panel
+await move([1150, 520], 10); await sleep(400);
+await record('landing', async () => { await sleep(500); await move(await at('Start an investigation', 0, 4, 'a,button'), 2000); await sleep(2300); await ripple(); await sleep(2600); });
+// 2. detect (6.2 s): follow the series to its Sen line, scroll to the tests, point at the alpha line
 await go(`/investigations/${INV.id}/detect`, 'Is the change real?');
-await scrollTo('June–September precipitation series', false, 110); await sleep(600);
-await record('detect', async () => { await sleep(2600); await scrollTo('STATISTICAL TESTS', true, 40); await sleep(3400); });
-// 3. investigate: co-variation, then correlation bars
+await scrollTo('June–September precipitation series', false, 110); await sleep(500);
+await move([560, 470], 10); await sleep(300);
+await record('detect', async () => {
+  await sleep(200); await move([1010, 320], 1500); await sleep(1500);
+  await scrollTo('STATISTICAL TESTS', true, 40); await sleep(900);
+  await move(await at('SIGNIFICANCE OF', 40, 70), 1200); await sleep(2300); });
+// 3. investigate (6.3 s): click "Topsoil wetness", then the correlation bars
 await go(`/investigations/${INV.id}/investigate`, 'Which variables move with the rain?');
-await scrollTo('LAYER 02', false, 40); await sleep(600);
-await record('investigate', async () => { await sleep(2400); await scrollTo('Which variables move with the rain?', true, 30); await sleep(3600); });
-// 4. project
+await scrollTo('LAYER 02', false, 40); await sleep(500);
+await move([900, 560], 10); await sleep(300);
+await record('investigate', async () => {
+  await sleep(200); await move(await at('Topsoil wetness', 0, 0, 'button'), 1100); await sleep(1200); await ripple(); await clickText('Topsoil wetness'); await sleep(1300);
+  await scrollTo('Which variables move with the rain?', true, 30); await sleep(800);
+  await move(await at('Which variables move with the rain?', 380, 110), 1000); await sleep(1700); });
+// 4. project (3.4 s): trace the fan toward 2050
 await go(`/investigations/${INV.id}/project`, 'history | scenarios');
-await scrollTo('CONDITIONAL SCENARIOS, NEVER FORECASTS', false, 30); await sleep(600);
-await record('project', () => sleep(5000));
-// 5. report: key findings, then the AI narrative (generation itself not recorded)
+await scrollTo('CONDITIONAL SCENARIOS, NEVER FORECASTS', false, 30); await sleep(500);
+await move(await at('HISTORICAL BASELINE', -40, 160), 10); await sleep(300);
+await record('project', async () => { await sleep(200); await move(await at('HISTORICAL BASELINE', 300, 70), 1800); await sleep(1400); });
+// 5. report (5.9 s): key findings, click "Generate narrative" (generation not recorded), then the verified narrative
 await go(`/investigations/${INV.id}/report`, 'KEY FINDINGS');
-await scrollTo('KEY FINDINGS', false, 60); await sleep(600);
-await record('report_findings', () => sleep(2800));
-await js(`[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generate narrative')).click()`);
+await scrollTo('KEY FINDINGS', false, 60); await sleep(500);
+await move([780, 210], 10); await sleep(300);
+await record('report_findings', async () => { await sleep(200); await move([1050, 360], 900); await sleep(700); await move(await at('Generate narrative', 0, 0, 'button'), 900); await sleep(400); await ripple(); await sleep(400); });
+await clickText('Generate narrative');
 await waitText('AI-generated · ', 90000); await sleep(800);
 await scrollTo('ASK THE DATA', false, 30); await sleep(600);
-await record('report_narrative', () => sleep(3200));
+await move(await at('Regenerate', 0, 0, 'button'), 10); await sleep(300);
+await record('report_narrative', async () => { await sleep(200); await move(await at('All numbers match the data', 0, 0, 'span'), 1100); await sleep(1900); });
 
 writeFileSync(`${OUT}/scenes.json`, JSON.stringify(scenes, null, 1));
 console.log(scenes.map((s) => `${s.name}: ${s.frames.length} frames, ${(s.end - s.start).toFixed(1)} s`).join('\n'));

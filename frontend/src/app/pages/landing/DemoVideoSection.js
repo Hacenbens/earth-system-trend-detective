@@ -46,7 +46,7 @@ export function DemoVideoSection() {
         </motion.div>
         <p className="mt-3 font-mono text-[11px] text-[#A9B1C6]">
           Screen recording of the live app (Eastern Sahel, 1998–2025). AI-assisted production: recording automated and
-          captions written with Claude Code.
+          captions written with Claude Code; voice-over generated with ElevenLabs. Unmute for the narration.
         </p>
       </div>
     </section>
