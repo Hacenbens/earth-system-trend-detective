@@ -1,0 +1,118 @@
+{
+  "id": "INV-001",
+  "config": {
+    "name": "Sahel Rainfall Study",
+    "region_id": "sahel",
+    "start_year": 1998,
+    "end_year": 2025,
+    "variable": "precipitation",
+    "season": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "datasets": [
+      "imerg_final",
+      "merra2",
+      "modis",
+      "earthcare"
+    ]
+  },
+  "detect": {
+    "status": "done",
+    "results": [
+      {
+        "region_id": "sahel",
+        "metric": "PRCPTOT",
+        "label": "Season total on wet days",
+        "unit": "mm",
+        "direction": "no_significant_trend",
+        "direction_hint": "increasing",
+        "sen_slope": 1.43,
+        "slope_unit": "mm/yr",
+        "slope_ci95": [
+          -0.58,
+          3.21
+        ],
+        "pct_per_decade": 3.3,
+        "mk_s": 74,
+        "mk_tau": 0.196,
+        "p_value": 0.149,
+        "significant": false,
+        "alpha": 0.05,
+        "n": 28,
+        "evidence_id": "E-006"
+      }
+    ],
+    "start_year_sensitivity": [
+      {
+        "start": 2000,
+        "pct_per_decade": 4.9,
+        "p_value": 0.022
+      }
+    ],
+    "handoff": {
+      "region_id": "sahel",
+      "period": [
+        1998,
+        2025
+      ],
+      "season": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "unusual_years": [
+        {
+          "year": 2002,
+          "kind": "dry",
+          "z": null
+        },
+        {
+          "year": 2024,
+          "kind": "wet",
+          "z": null
+        }
+      ]
+    },
+    "provenance": {
+      "dataset": "GPM IMERG Final",
+      "version": "V07B",
+      "agency": "NASA GES DISC",
+      "product": "GPM_3IMERGDF",
+      "variable": "precipitation",
+      "units": "mm/day",
+      "box": {
+        "lat": [
+          10.0,
+          20.0
+        ],
+        "lon": [
+          -18.0,
+          20.0
+        ]
+      },
+      "period": [
+        "1998-06-01",
+        "2025-09-30"
+      ],
+      "season": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "method": "per-cell index, cos(lat)-weighted box mean; Mann-Kendall + Sen",
+      "limitations": [
+        "Daily tail not homogeneous across 2014 (E-006)",
+        "Trend significance depends on the start year: p = 0.149 from 1998, p = 0.022 from 2000"
+      ]
+    }
+  },
+  "investigate": null,
+  "explain": null,
+  "project": null,
+  "solve": null
+}
