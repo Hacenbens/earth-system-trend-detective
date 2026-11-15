@@ -6,6 +6,7 @@
 #   make fetch       download all inputs (NASA Earthdata login in .env or ~/.netrc; CHIRPS needs no login)
 #   make all         analysis + warehouse
 #   make test        run the backend unit tests (in-memory adapters, no database needed)
+#   make smoke       live end-to-end test against a running API (start `make api` first; PORT=8000 by default)
 #   make api         run the API on http://127.0.0.1:$(PORT) (docs at /docs); builds the warehouse first if missing
 #
 # Credentials stay in .env / ~/.netrc (git-ignored). EarthCARE needs an ESA MAAP token (see .env.example).
@@ -14,7 +15,7 @@ PY := .venv/bin/python
 
 PORT ?= 8000
 
-.PHONY: test api all fetch fetch-imerg fetch-imerg-daily fetch-chirps fetch-merra2 fetch-earthcare analysis cards warehouse clean-warehouse
+.PHONY: smoke test api all fetch fetch-imerg fetch-imerg-daily fetch-chirps fetch-merra2 fetch-earthcare analysis cards warehouse clean-warehouse
 
 all: analysis warehouse
 
@@ -66,3 +67,6 @@ api:
 # ---------- 5. tests
 test:
 	PYTHONPATH=src $(PY) -m unittest discover -s tests -t . -v
+
+smoke:
+	$(PY) scripts/smoke_test_api.py http://127.0.0.1:$(PORT)

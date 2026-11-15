@@ -51,8 +51,9 @@ def _parametric(x, y, alpha):
     return out
 
 
-def trend_summary(s: pd.Series, alpha: float = 0.05) -> dict:
-    """s: values indexed by year (int). Returns a flat dict of statistics (slope in units per year)."""
+def trend_summary(s: pd.Series, alpha: float = 0.05, parametric: bool = True) -> dict:
+    """s: values indexed by year (int). Returns a flat dict of statistics (slope in units per year).
+    parametric=False skips the OLS / AR(1) cross-checks (~80 % of the run time); MK and Sen results are identical."""
     s = s.dropna().sort_index()
     x, y = s.index.to_numpy(dtype=float), s.to_numpy(dtype=float)
     orig = mk.original_test(y, alpha=alpha)
@@ -74,5 +75,6 @@ def trend_summary(s: pd.Series, alpha: float = 0.05) -> dict:
         "lag1_autocorr": r1,
         "significant_all_tests": bool(max(orig.p, p_hr, yw.p) < alpha),
         "intercept": float(intercept),
-        **_parametric(x, y, alpha),
+        **(_parametric(x, y, alpha) if parametric else dict.fromkeys(
+            ["ols_slope", "ols_slope_ci_low", "ols_slope_ci_high", "ols_p", "ar1_slope", "ar1_slope_ci_low", "ar1_slope_ci_high", "ar1_p", "ar1_phi", "ar1_phi_p"])),
     }

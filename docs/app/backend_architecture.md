@@ -102,6 +102,9 @@ Example (`LOG_FORMAT=text`):
 `POST /api/v1/investigations/{id}/detect` → router → `DetectDTO.to_command()` → `DetectTrends.execute(cmd)` → `InvestigationLoader` (Result) → `RegionValidator` (Result) → `TrendAssessor` per region × metric (`SeriesSelector` + `TrendAnalyzer` port) → save through `InvestigationRepository` → `Ok(result)` → `to_response()` → JSON.
 
 ## 6. Tests and checks
+- `make smoke` (with `make api` running): **47 live end-to-end checks** (`scripts/smoke_test_api.py`, standard library only): every endpoint, the scientific values against the evidence ledger (E-005, E-006, E-007, E-008, E-010), every error kind and its HTTP code, request-id generation/echo, CORS preflight, 24 concurrent requests. Last run 2026-11-15: 47/47 passed; JSON log file: 80 valid lines, request traced from use-case event to access line.
+- Start-up failures are explicit: missing warehouse -> "Warehouse not found at … Build it with `make warehouse`"; invalid `LOG_FORMAT` -> ValueError listing the allowed values.
+- Performance: `/detect` for 4 regions x (2 metrics + extremes) = 13 results takes ~1.4 s (was 4.5 s): sensitivity tables and independent checks use the Mann–Kendall/Sen-only mode (`TrendAnalyzer.analyze(full=False)`, identical MK/Sen values); the OLS/AR(1) cross-checks run once per main result.
 - `make test`: 14 unit tests (domain rules, Result, every use case) on in-memory adapters.
 - End-to-end check (2026-11-15): every endpoint returned the same numbers as the previous implementation (e.g. Sahel +3.1 %/decade p = 0.161; east CHIRPS +7.9 % p = 0.026; east dry spell −9.6 % p = 0.001).
 - Dependency rule (also: `core/` imports no other backend package and no framework; `os.environ` appears only in `core/settings.py`): `grep -rnE "from \.\.(application|infrastructure|interfaces)|import (fastapi|sqlite3|pydantic)" src/earth_detective/backend/domain` returns nothing (same for `application/` against infrastructure and frameworks).

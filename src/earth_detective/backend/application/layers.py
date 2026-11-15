@@ -118,7 +118,7 @@ class InvestigateEvidence:
         x, y = x_r.value, y_r.value
         a = self._assoc.detrended(x.as_dict(), y.as_dict())
         exp = rules.expected_sign(variable, compare_to)
-        t = self._trend.analyze(x.as_dict())
+        t = self._trend.analyze(x.as_dict(), full=False)
         mean = t.mean
         return Ok({"region_id": region, "variable": variable, "label": x.variable.label, "unit": x.variable.unit, "dataset": x.dataset.code,
                    "rainfall_metric": compare_to, "comparison_period": [a.year_start, a.year_end], "relationship": a.method,

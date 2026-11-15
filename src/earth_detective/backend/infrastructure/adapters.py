@@ -66,10 +66,10 @@ class JsonInvestigationRepository:
 class MannKendallTrendAnalyzer:
     """Adapter over src/earth_detective/trend.py (the same code as the analysis and the warehouse build)."""
 
-    def analyze(self, series: dict[int, float]) -> TrendStats:
+    def analyze(self, series: dict[int, float], full: bool = True) -> TrendStats:
         import pandas as pd
         s = pd.Series(series).sort_index()
-        t = trend_summary(s)
+        t = trend_summary(s, parametric=full)
         pct = t["slope_pct_per_decade"] if abs(t["mean"]) > PCT_EPSILON else None
         return TrendStats(n=t["n"], start=int(t["start"]), end=int(t["end"]), mean=float(t["mean"]), sen_slope=float(t["sen_slope"]),
                           slope_ci_low=float(t["slope_ci_low"]), slope_ci_high=float(t["slope_ci_high"]), slope_pct_per_decade=pct,

@@ -57,7 +57,9 @@ class InvestigationRepository(Protocol):
 
 
 class TrendAnalyzer(Protocol):
-    def analyze(self, series: dict[int, float]) -> TrendStats: ...
+    def analyze(self, series: dict[int, float], full: bool = True) -> TrendStats:
+        """full=False: Mann-Kendall + Sen only (no OLS/AR(1) cross-checks); for sensitivity tables and side checks."""
+        ...
 
 
 class AssociationAnalyzer(Protocol):

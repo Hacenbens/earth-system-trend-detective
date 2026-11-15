@@ -138,7 +138,7 @@ class TrendAssessor:
         alt = self._selector.select(region, metric, others[0].dataset.code, y0, y1)
         if not alt.is_ok:
             return None
-        ta = self._analyzer.analyze(alt.value.as_dict())
+        ta = self._analyzer.analyze(alt.value.as_dict(), full=False)
         return {"dataset": others[0].dataset.code, "pct_per_decade": ta.slope_pct_per_decade, "p_value": ta.mk_p,
                 "agrees_in_sign": (ta.sen_slope > 0) == (st.sen_slope > 0)}
 
@@ -148,7 +148,7 @@ class TrendAssessor:
             sub = {y: v for y, v in series.items() if y >= start}
             if len(sub) < MIN_SEASONS:
                 break
-            t = self._analyzer.analyze(sub)
+            t = self._analyzer.analyze(sub, full=False)
             out.append({"start": start, "pct_per_decade": t.slope_pct_per_decade, "p_value": t.mk_p})
         return out
 
