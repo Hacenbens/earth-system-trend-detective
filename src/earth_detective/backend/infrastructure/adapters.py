@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 from dataclasses import asdict
 from pathlib import Path
 
@@ -23,9 +24,13 @@ class SystemClock:
 
 
 class JsonInvestigationRepository:
-    """One JSON document per investigation (MVP decision, docs/app/api_contract.md). Atomic writes."""
+    """One JSON document per investigation (MVP decision, docs/app/api_contract.md). Atomic writes.
+
+    Saves are serialised and merge the layers already stored: layer use cases do read-modify-write, so two layers
+    running in parallel on one investigation (e.g. detect and investigate) would otherwise erase each other."""
     def __init__(self, directory: Path):
         self._dir = directory
+        self._lock = threading.Lock()
 
     def _path(self, inv_id: str) -> Path | None:
         return self._dir / f"{inv_id}.json" if helpers.is_valid_investigation_id(inv_id) else None
@@ -35,12 +40,21 @@ class JsonInvestigationRepository:
 
     def save(self, inv: Investigation) -> Investigation:
         self._dir.mkdir(parents=True, exist_ok=True)
-        doc = {"id": inv.id, "created_at": inv.created_at, "updated_at": inv.updated_at, "config": asdict(inv.config),
-               "prepared": inv.prepared, "layers": inv.layers}
         p = self._path(inv.id)
-        tmp = p.with_suffix(".tmp")
-        tmp.write_text(json.dumps(doc, indent=2, ensure_ascii=False))
-        tmp.replace(p)
+        with self._lock:
+            layers = dict(inv.layers)
+            if p.exists():
+                try:
+                    stored = json.loads(p.read_text()).get("layers", {})
+                except (OSError, ValueError):
+                    stored = {}
+                layers = {**stored, **layers}  # layers this save did not touch survive a concurrent writer
+            doc = {"id": inv.id, "created_at": inv.created_at, "updated_at": inv.updated_at, "config": asdict(inv.config),
+                   "prepared": inv.prepared, "layers": layers}
+            tmp = p.with_suffix(f".{threading.get_ident()}.tmp")
+            tmp.write_text(json.dumps(doc, indent=2, ensure_ascii=False))
+            tmp.replace(p)
+        inv.layers.update(layers)
         return inv
 
     def get(self, inv_id: str) -> Investigation | None:

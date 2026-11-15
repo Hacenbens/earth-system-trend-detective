@@ -129,3 +129,23 @@ class SettingsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class JsonStoreConcurrentLayersTests(unittest.TestCase):
+    """Regression: parallel layers (read-modify-write) erased each other's results."""
+
+    def test_two_stale_copies_keep_both_layers(self):
+        from concurrent.futures import ThreadPoolExecutor
+
+        from earth_detective.backend.domain.models import Investigation, InvestigationConfig
+        with tempfile.TemporaryDirectory() as d:
+            repo = JsonInvestigationRepository(Path(d))
+            cfg = InvestigationConfig("t", "sahel", 1998, 2025)
+            repo.save(Investigation("0000000000aa", "2026-11-15T00:00:00+00:00", cfg, {}, {}))
+            names = ["detect", "investigate", "project", "solve"]
+            copies = [repo.get("0000000000aa") for _ in names]           # all loaded before any layer is saved
+            for inv, name in zip(copies, names):
+                inv.layers[name] = {"done": name}
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                list(pool.map(repo.save, copies))
+            self.assertEqual(set(repo.get("0000000000aa").layers), set(names))

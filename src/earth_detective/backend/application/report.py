@@ -11,9 +11,15 @@ from ..domain.result import AppError, Err, Ok, Result
 from .investigations import investigation_view
 from .services import InvestigationLoader
 
-LIMITATIONS = ["28 seasons (1998-2025) is a short record", "Atmospheric variables come from a reanalysis (MERRA-2)",
+LIMITATIONS = ["Atmospheric variables come from a reanalysis (MERRA-2)",
                "Daily heavy-rain indices are not homogeneous across the 2014 satellite change (E-006)",
                f"{ASSOCIATION_DISCLAIMER} Scenarios are not forecasts."]
+
+
+def limitations_for(config: dict) -> list[str]:
+    """The record length is the investigation's own period, not the full 1998-2025 archive."""
+    y0, y1 = config["start_year"], config["end_year"]
+    return [f"{y1 - y0 + 1} seasons ({y0}-{y1}) is a short record", *LIMITATIONS]
 
 
 class BuildReport:
@@ -29,7 +35,7 @@ class BuildReport:
         return Ok({"overview": {"id": v["id"], "name": v["config"]["name"], "config": v["config"], "prepared": v["prepared"]},
                    "trend_detection": v["layers"].get(Layer.DETECT), "environmental_investigation": v["layers"].get(Layer.INVESTIGATE),
                    "physical_explanation": v["layers"].get(Layer.EXPLAIN), "future_scenarios": v["layers"].get(Layer.PROJECT),
-                   "solution_comparison": v["layers"].get(Layer.SOLVE), "limitations": LIMITATIONS,
+                   "solution_comparison": v["layers"].get(Layer.SOLVE), "limitations": limitations_for(v["config"]),
                    "references": {"datasets": self._refs.references(), "evidence_ledger": "docs/research/evidence_ledger.md",
                                   "literature": "docs/research/literature.md (TO-VERIFY until read)"},
                    "build": {"built_at": b.get("built_at"), "git_commit": b.get("git_commit")},
