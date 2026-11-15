@@ -146,6 +146,7 @@ Update the status here when a task moves: ⬜ to do · 🟡 in progress · ✅ d
 |---|---|---|---|---|---|
 | T-23 | Install `fastapi`, `uvicorn[standard]`, `cartopy`, `jupyterlab`, `ipykernel`, `pyarrow` (blocked for the assistant) | ⬜ | Team lead | – | 5 min |
 | T-24 | Merge PR #1, then #3; retarget and finish #2 | ⬜ | Team | reviews | – |
+| T-24b | Star-schema warehouse + reproducible Makefile (`sql/schema.sql`, `scripts/build_warehouse.py`, `docs/app/data_model.md`) | ✅ `make warehouse` rebuilds from committed CSVs in ~10 s; facts reproduce the ledger | Claude | – | done |
 | T-25 | Backend: Layer 1 API from `docs/app/api_contract.md` (regions, datasets, investigations, detect) | ⬜ | Claude / Backend A | T-23, T-24 | 2 h |
 | T-26 | Front-end against the contract's mock JSON (region picker, Layer 1 result, regional comparison) | ⬜ | Front-end | – | – |
 | T-27 | Layers 2–5 endpoints (investigate, mechanisms from `data/app/mechanisms.json`, project, qualitative solve) | ⬜ | Backend B | T-25 | 2–3 h |
