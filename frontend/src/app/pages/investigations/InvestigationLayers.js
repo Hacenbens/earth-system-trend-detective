@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { AlertTriangle, ArrowRight, CheckCircle2, Info } from 'lucide-react';
+import { niceTicks, PairChart, PValueScale, RhoBars, SensitivityBars, SlopeIntervals, TrendChart } from '@/components/charts/StatCharts';
 import {
   PROJECTION_END,
   backendSupport,
@@ -20,6 +21,70 @@ import {
 /* ============================================================================
  * PAGE 10: LAYER 01 — DETECT / TREND EXPLORER
  * ========================================================================== */
+// ---- Statistical tests panel (live): p-values vs alpha, change with 95 % intervals, start-year sensitivity
+function pctInterval(r) {
+  // Sen slope CI is in units/yr; convert with the same factor as pct_per_decade = slope * factor
+  if (!r?.slope_ci95 || !r.sen_slope) return {};
+  const f = r.pct_per_decade / r.sen_slope;
+  return { lo: r.slope_ci95[0] * f, hi: r.slope_ci95[1] * f };
+}
+
+function DetectTestsPanel({ live, main }) {
+  const ac = main.autocorrelation || {};
+  const cc = main.cross_checks || {};
+  const check = main.independent_check;
+  const tests = [
+    { label: 'Mann–Kendall', p: main.p_value },
+    { label: 'MK pre-whitened', p: ac.mk_yue_wang_p },
+    { label: 'Linear regression', p: cc.ols_p },
+    check && { label: `Check: ${check.dataset.startsWith('chirps') ? 'CHIRPS' : check.dataset}`, p: check.p_value },
+  ].filter(Boolean);
+  const rows = Object.values(live.byMetric || {}).map((r) => ({ label: r.label, value: r.pct_per_decade, ...pctInterval(r) }));
+  if (check) rows.splice(1, 0, { label: 'Rainfall (CHIRPS check)', value: check.pct_per_decade });
+  const card = 'rounded-[22px] bg-[#f4f1ea] border border-[#E6E0D2] p-5';
+  const title = 'font-mono text-[10px] uppercase tracking-wider text-[#5B6478]';
+  return (
+    <section className="rounded-[28px] bg-[#FBFAF6] border border-[#E6E0D2] p-6 shadow-[0_20px_50px_rgba(19,29,56,0.06)] space-y-4">
+      <div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#5B6478]">STATISTICAL TESTS</p>
+        <h3 className="mt-1 font-display text-[18px] font-semibold text-[#131D38]">
+          Is the change real? {main.significant ? 'Yes at α = 0.05.' : 'Not at α = 0.05.'}
+        </h3>
+        <p className="text-[13px] text-[#5B6478]">
+          A trend counts when its p-value falls left of the amber line and its 95 % interval does not cross zero.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className={card}>
+          <div className={title}>Significance of {main.label.toLowerCase()} trend</div>
+          <PValueScale tests={tests} />
+        </div>
+        <div className={card}>
+          <div className={title}>Change per decade with 95 % interval</div>
+          <SlopeIntervals rows={rows} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {main.start_year_sensitivity?.length > 1 && (
+          <div className={card}>
+            <div className={title}>Does the result depend on the start year? (filled = significant)</div>
+            <SensitivityBars rows={main.start_year_sensitivity} />
+          </div>
+        )}
+        <div className={`${card} text-[13px] text-[#131D38] leading-[1.6]`}>
+          <div className={title}>How to read these tests</div>
+          <ul className="mt-2 space-y-2 list-disc pl-5">
+            <li><strong>Mann–Kendall</strong> asks whether later seasons tend to be higher (or lower) than earlier ones, without assuming a straight line.</li>
+            <li><strong>Pre-whitened</strong> repeats it after removing year-to-year memory, which can fake a trend.</li>
+            <li><strong>Linear regression</strong> is the classic straight-line check; <strong>CHIRPS</strong> repeats the test on an independent rain dataset.</li>
+            <li>A robust trend keeps its sign whatever the <strong>start year</strong>; bars changing sign mean the result depends on the window chosen.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLayer }) {
   const [trendMethod, setTrendMethod] = useState('Mann-Kendall');
   const [slopeMethod, setSlopeMethod] = useState("Sen's slope");
@@ -200,92 +265,104 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
           </div>
 
           <div className="mt-5 rounded-[22px] bg-[#131D38] p-5 text-[#f4f1ea]">
-            <svg
-              viewBox="0 0 620 195"
-              className="w-full h-auto"
-              role="img"
-              aria-label="Historical rainfall trend chart"
-            >
-              <line
-                x1="36"
-                y1="45"
-                x2="596"
-                y2="45"
-                stroke="#f4f1ea"
-                strokeOpacity="0.1"
-                strokeDasharray="3 3"
+            {liveMain ? (
+              <TrendChart
+                points={(liveMain.series || [])
+                  .filter((p) => p.value != null)
+                  .map((p) => ({ x: Number(p.date), y: viewAnomaly ? p.anomaly : p.value }))}
+                slope={liveMain.sen_slope}
+                yLabel={viewAnomaly ? `Anomaly vs mean (${liveMain.unit})` : `${liveMain.label} (${liveMain.unit})`}
+                zeroLine={viewAnomaly}
+                highlight={live.unusualYears}
               />
-              <line
-                x1="36"
-                y1="95"
-                x2="596"
-                y2="95"
-                stroke="#f4f1ea"
-                strokeOpacity="0.18"
-                strokeDasharray={viewAnomaly ? '0' : '3 3'}
-              />
-              <line
-                x1="36"
-                y1="145"
-                x2="596"
-                y2="145"
-                stroke="#f4f1ea"
-                strokeOpacity="0.1"
-                strokeDasharray="3 3"
-              />
+            ) : (
+              <svg
+                viewBox="0 0 620 195"
+                className="w-full h-auto"
+                role="img"
+                aria-label="Historical rainfall trend chart"
+              >
+                <line
+                  x1="36"
+                  y1="45"
+                  x2="596"
+                  y2="45"
+                  stroke="#f4f1ea"
+                  strokeOpacity="0.1"
+                  strokeDasharray="3 3"
+                />
+                <line
+                  x1="36"
+                  y1="95"
+                  x2="596"
+                  y2="95"
+                  stroke="#f4f1ea"
+                  strokeOpacity="0.18"
+                  strokeDasharray={viewAnomaly ? '0' : '3 3'}
+                />
+                <line
+                  x1="36"
+                  y1="145"
+                  x2="596"
+                  y2="145"
+                  stroke="#f4f1ea"
+                  strokeOpacity="0.1"
+                  strokeDasharray="3 3"
+                />
 
-              {/* Linear Sen slope placeholder line (live Sen fit when available) */}
-              <line
-                x1={livePlot?.sen?.x1 ?? 36}
-                y1={livePlot?.sen?.y1 ?? (viewAnomaly ? 112 : 128)}
-                x2={livePlot?.sen?.x2 ?? 596}
-                y2={livePlot?.sen?.y2 ?? (viewAnomaly ? 74 : 78)}
-                stroke="#ffc20d"
-                strokeWidth="2"
-                strokeDasharray="6 4"
-              />
-              {/* Main series */}
-              <path
-                d={svgPath}
-                fill="none"
-                stroke="#4FB3A9"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <text
-                x="36"
-                y="186"
-                fill="#A9B1C6"
-                fontSize="10"
-                fontFamily="JetBrains Mono, monospace"
-              >
-                {axisYears[0]}
-              </text>
-              <text
-                x="305"
-                y="186"
-                fill="#A9B1C6"
-                fontSize="10"
-                fontFamily="JetBrains Mono, monospace"
-              >
-                {axisYears[Math.floor(axisYears.length / 2)]}
-              </text>
-              <text
-                x="570"
-                y="186"
-                fill="#A9B1C6"
-                fontSize="10"
-                fontFamily="JetBrains Mono, monospace"
-              >
-                {axisYears[axisYears.length - 1]}
-              </text>
-            </svg>
+                {/* Linear Sen slope placeholder line (live Sen fit when available) */}
+                <line
+                  x1={livePlot?.sen?.x1 ?? 36}
+                  y1={livePlot?.sen?.y1 ?? (viewAnomaly ? 112 : 128)}
+                  x2={livePlot?.sen?.x2 ?? 596}
+                  y2={livePlot?.sen?.y2 ?? (viewAnomaly ? 74 : 78)}
+                  stroke="#ffc20d"
+                  strokeWidth="2"
+                  strokeDasharray="6 4"
+                />
+                {/* Main series */}
+                <path
+                  d={svgPath}
+                  fill="none"
+                  stroke="#4FB3A9"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <text
+                  x="36"
+                  y="186"
+                  fill="#A9B1C6"
+                  fontSize="10"
+                  fontFamily="JetBrains Mono, monospace"
+                >
+                  {axisYears[0]}
+                </text>
+                <text
+                  x="305"
+                  y="186"
+                  fill="#A9B1C6"
+                  fontSize="10"
+                  fontFamily="JetBrains Mono, monospace"
+                >
+                  {axisYears[Math.floor(axisYears.length / 2)]}
+                </text>
+                <text
+                  x="570"
+                  y="186"
+                  fill="#A9B1C6"
+                  fontSize="10"
+                  fontFamily="JetBrains Mono, monospace"
+                >
+                  {axisYears[axisYears.length - 1]}
+                </text>
+              </svg>
+            )}
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] text-[#A9B1C6]">
               <span className="inline-flex items-center gap-2">
                 <span className="w-3 h-0.5 bg-[#4FB3A9]" /> Annual {seasonMode} series
-                {liveMain ? '' : ' (illustrative)'}
+                {liveMain ? ' · amber dots = unusual seasons (> 1.5 SD)' : ' (illustrative)'}
               </span>
               <span className="inline-flex items-center gap-2 text-[#ffc20d]">
                 <span className="w-3 h-0.5 bg-[#ffc20d]" /> {liveMain ? "Sen's slope" : slopeMethod} fit
@@ -352,7 +429,7 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
       {/* Extreme Indicators + Spatial Trend Map */}
       {showExtremes && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <section className="lg:col-span-7 rounded-[28px] bg-[#FBFAF6] border border-[#E6E0D2] p-6 shadow-[0_20px_50px_rgba(19,29,56,0.06)]">
+          <section className={`${liveMain ? 'lg:col-span-12' : 'lg:col-span-7'} rounded-[28px] bg-[#FBFAF6] border border-[#E6E0D2] p-6 shadow-[0_20px_50px_rgba(19,29,56,0.06)]`}>
             <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#5B6478]">
               EXTREME PRECIPITATION INDICES
             </p>
@@ -405,6 +482,7 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
             </div>
           </section>
 
+          {!liveMain && (
           <section className="lg:col-span-5 rounded-[28px] bg-[#131D38] text-[#f4f1ea] p-6 shadow-[0_20px_50px_rgba(19,29,56,0.12)] flex flex-col justify-between">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#ffc20d]">
@@ -444,8 +522,12 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
               marks localized dry-spell persistence (diagnostic mockup).
             </p>
           </section>
+          )}
         </div>
       )}
+
+      {/* Statistical tests, visualised (live results only) */}
+      {liveMain && <DetectTestsPanel live={live} main={liveMain} />}
 
       {/* Statistical vs Scientific Interpretation + Continue */}
       <section className="rounded-[28px] bg-[#FBFAF6] border border-[#E6E0D2] p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
@@ -582,6 +664,11 @@ function liveInvestigateVars(live) {
         reuse?.summary ??
         `Mechanism ${c.mechanism_id}: expected ${c.expected_sign > 0 ? 'positive' : 'negative'} association with seasonal rainfall. Own trend ${signed(c.variable_trend?.per_decade, 2)} ${c.unit}/decade.`,
       points: toChartScale(pts),
+      series: pts,
+      rho: c.statistic,
+      p: c.p_value,
+      backendStatus: c.status,
+      label: c.label,
     };
   });
   const earthcare = INVESTIGATE_VARS.find((v) => v.id === 'earthcare');
@@ -597,6 +684,7 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
   const vars = useMemo(() => (isLive ? liveInvestigateVars(liveEv) : INVESTIGATE_VARS), [isLive, liveEv]);
   const [selectedVarId, setSelectedVarId] = useState(INVESTIGATE_VARS[0].id);
   const [lagMonths, setLagMonths] = useState(0);
+  const [showTable, setShowTable] = useState(false);
   const activeVar = vars.find((v) => v.id === selectedVarId) ?? vars[0];
 
   const step = 504 / Math.max(1, activeVar.points.length - 1);
@@ -675,30 +763,36 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
                   : 'CO-VARIATION PREVIEW'}
               </span>
             </div>
-            <svg
-              viewBox="0 0 560 150"
-              className="w-full h-auto mt-3"
-              role="img"
-              aria-label={`Co-variation chart for ${activeVar.name}`}
-            >
-              <line
-                x1="25"
-                y1="75"
-                x2="545"
-                y2="75"
-                stroke="#f4f1ea"
-                strokeOpacity="0.14"
-                strokeDasharray="3 3"
-              />
-              <path
-                d={baselinePath}
-                fill="none"
-                stroke="#4FB3A9"
-                strokeWidth="2.2"
-                strokeDasharray="4 4"
-              />
-              <path d={path} fill="none" stroke="#ffc20d" strokeWidth="2.8" strokeLinecap="round" />
-            </svg>
+            {isLive && activeVar.series ? (
+              <div className="mt-3">
+                <PairChart a={activeVar.series} b={liveEv.rainfall} />
+              </div>
+            ) : (
+              <svg
+                viewBox="0 0 560 150"
+                className="w-full h-auto mt-3"
+                role="img"
+                aria-label={`Co-variation chart for ${activeVar.name}`}
+              >
+                <line
+                  x1="25"
+                  y1="75"
+                  x2="545"
+                  y2="75"
+                  stroke="#f4f1ea"
+                  strokeOpacity="0.14"
+                  strokeDasharray="3 3"
+                />
+                <path
+                  d={baselinePath}
+                  fill="none"
+                  stroke="#4FB3A9"
+                  strokeWidth="2.2"
+                  strokeDasharray="4 4"
+                />
+                <path d={path} fill="none" stroke="#ffc20d" strokeWidth="2.8" strokeLinecap="round" />
+              </svg>
+            )}
             <div className="mt-3 flex flex-wrap gap-4 font-mono text-[11px] text-[#A9B1C6]">
               <span className="inline-flex items-center gap-1.5 text-[#ffc20d]">
                 <span className="w-3 h-0.5 bg-[#ffc20d]" /> {activeVar.name}
@@ -741,10 +835,32 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
 
       {/* Evidence Comparison Table + Limitations */}
       <section className="rounded-[28px] bg-[#FBFAF6] border border-[#E6E0D2] p-6 shadow-[0_20px_50px_rgba(19,29,56,0.06)]">
-        <h3 className="font-display text-[18px] font-semibold text-[#131D38]">
-          Evidence comparison table
-        </h3>
-        <div className="mt-4 overflow-x-auto">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="font-display text-[18px] font-semibold text-[#131D38]">
+            {isLive ? 'Which variables move with the rain?' : 'Evidence comparison table'}
+          </h3>
+          {isLive && (
+            <button
+              type="button"
+              onClick={() => setShowTable((v) => !v)}
+              className="px-3 py-1 rounded-full font-mono text-[11px] bg-[#f4f1ea] border border-[#E6E0D2] text-[#131D38] cursor-pointer"
+            >
+              {showTable ? 'Show chart' : 'Show table'}
+            </button>
+          )}
+        </div>
+        {isLive && !showTable && (
+          <div className="mt-4 rounded-[22px] bg-[#f4f1ea] border border-[#E6E0D2] p-5">
+            <div className="max-w-3xl mx-auto">
+            <RhoBars
+              rows={vars
+                .filter((v) => v.rho != null)
+                .map((v) => ({ label: v.label, rho: v.rho, p: v.p, status: v.backendStatus }))}
+            />
+            </div>
+          </div>
+        )}
+        <div className={`mt-4 overflow-x-auto ${isLive && !showTable ? 'hidden' : ''}`}>
           <table className="w-full text-left border-collapse text-[13px]">
             <thead>
               <tr className="border-b border-[#E6E0D2] font-mono text-[10px] uppercase tracking-wider text-[#5B6478]">
@@ -1144,11 +1260,15 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
     if (all.length < 2) return null;
     const { toY } = scaler(all, { x0: 0, x1: 1, y0: 20, y1: 172 });
     const h0 = hist.length ? hist[0].x : 2025;
-    const xHist = (yr) => 24 + ((yr - h0) / Math.max(1, 2025 - h0)) * 226;
+    const xHist = (yr) => 62 + ((yr - h0) / Math.max(1, 2025 - h0)) * 188; // left margin for the y labels
     const xProj = (yr) => 250 + ((yr - 2025) / (PROJECTION_END - 2025)) * 286;
     const path = (pts) => pts.map((p, i) => `${i ? 'L' : 'M'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
     const ends = scenarios.map((s) => s.line[s.line.length - 1]?.value).filter((v) => v != null);
+    const values = all.map((p) => p.y);
+    const yTicks = niceTicks(Math.min(...values), Math.max(...values), 4).map((v) => ({ v, y: toY(v) }));
     return {
+      yTicks,
+      unit: liveProj.rain.unit,
       history: path(hist.map((p) => [xHist(p.x), toY(p.y)])),
       paths: Object.fromEntries(scenarios.map((s) => [s.id, path(s.line.map((p) => [xProj(p.year), toY(p.value)]))])),
       start: toY(liveProj.rain.baseline_value),
@@ -1265,6 +1385,20 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
                 role="img"
                 aria-label="Conditional scenario fan chart"
               >
+                {/* Y axis (live): rainfall ticks with units */}
+                {geom?.yTicks?.map((tk) => (
+                  <g key={tk.v}>
+                    <line x1="58" x2="536" y1={tk.y} y2={tk.y} stroke="#f4f1ea" strokeOpacity="0.1" />
+                    <text x="54" y={tk.y + 3} textAnchor="end" fill="#A9B1C6" fontSize="9" fontFamily="JetBrains Mono, monospace">
+                      {Math.round(tk.v)} {geom.unit}
+                    </text>
+                  </g>
+                ))}
+                {geom && (
+                  <text x="536" y="12" textAnchor="end" fill="#A9B1C6" fontSize="9" fontFamily="JetBrains Mono, monospace">
+                    June–September rainfall ({geom.unit}) · history | scenarios
+                  </text>
+                )}
                 {/* Divider at 2025 */}
                 <line
                   x1="250"
@@ -1309,7 +1443,7 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
                   />
                 ))}
                 <text
-                  x="24"
+                  x={geom ? 62 : 24}
                   y="194"
                   fill="#A9B1C6"
                   fontSize="10"
