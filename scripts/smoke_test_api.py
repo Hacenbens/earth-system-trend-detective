@@ -152,9 +152,10 @@ s, p, _, _ = call("GET", API + "/does-not-exist")
 check("unknown route -> 404", s == 404)
 
 # ---------------------------------------------------------------- CORS + concurrency
-req = urllib.request.Request(API + "/regions", method="OPTIONS", headers={"Origin": "http://localhost:5173", "Access-Control-Request-Method": "GET"})
+ORIGIN = os.environ.get("SMOKE_ORIGIN", "http://localhost:5173")  # set to the deployed front-end URL when CORS_ORIGINS is restricted
+req = urllib.request.Request(API + "/regions", method="OPTIONS", headers={"Origin": ORIGIN, "Access-Control-Request-Method": "GET"})
 with urllib.request.urlopen(req, timeout=30) as r:
-    check("CORS preflight allows the front end", r.status == 200 and r.headers.get("access-control-allow-origin") in ("*", "http://localhost:5173"))
+    check("CORS preflight allows the front end", r.status == 200 and r.headers.get("access-control-allow-origin") in ("*", ORIGIN))
 with ThreadPoolExecutor(8) as ex:
     out = list(ex.map(lambda _: call("GET", API + "/trends?variable=CDD"), range(24)))
 check("24 concurrent requests all 200", all(o[0] == 200 for o in out), f"max {max(o[3] for o in out):.0f} ms")

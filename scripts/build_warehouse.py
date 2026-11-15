@@ -46,10 +46,12 @@ def read_csv(path, **kw):
 
 # ---------------------------------------------------------------- 0. materialise regional seasonal series
 def materialise():
-    import xarray as xr
+    # optional: refresh two CSVs from raw NetCDF when present (local analysis machine); the committed CSVs are used
+    # otherwise, so the deployed image does not need xarray/netCDF
     pc = ROOT / "data" / "raw" / "imerg_jjas_percell_1998_2025.nc"
     out = P / "sahel_imerg_jjas_regions_1998_2025.csv"
     if pc.exists():
+        import xarray as xr
         ds = xr.open_dataset(pc).load()
         rows = []
         for reg, lon in LON.items():
@@ -60,6 +62,7 @@ def materialise():
     pl = ROOT / "data" / "raw" / "merra2_box" / "M2IMNPASM_1998_2025.nc"
     out2 = P / "sahel_merra2_shear_jjas_regions_1998_2025.csv"
     if pl.exists():
+        import xarray as xr
         w_ = xr.open_dataset(pl).load(); w_ = w_.sel(time=w_.time.dt.month.isin(JJAS))
         fields = {"shear_925_600": w_.U.sel(lev=925) - w_.U.sel(lev=600), "AEJ_U600": w_.U.sel(lev=600)}
         rows = []
@@ -272,7 +275,8 @@ ins("fact_mechanism_expectation", expect); ins("bridge_mechanism_evidence", sort
 tables = [r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%' ORDER BY type, name")]
 counts = {t: con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in tables if not t.startswith("v_") and t != "meta_build"}
 try:
-    commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    import os
+    commit = os.environ.get("WAREHOUSE_GIT_COMMIT") or subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
 except Exception:
     commit = None
 con.execute("INSERT INTO meta_build VALUES (?,?,?,?)", (datetime.now(timezone.utc).isoformat(timespec="seconds"), commit,

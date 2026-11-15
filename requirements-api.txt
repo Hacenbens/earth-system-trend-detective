@@ -1,0 +1,10 @@
+# Runtime dependencies of the backend API only (Docker image). Versions = the ones tested locally (make test, make smoke).
+# The full analysis stack (xarray, netCDF, earthaccess, plotting, Jupyter) stays in requirements.txt.
+fastapi==0.163.0
+uvicorn==0.54.0
+pydantic==2.14.3
+numpy==2.5.4
+scipy==1.18.1
+pandas==3.1.1
+pymannkendall==1.4.3
+statsmodels==0.15.0

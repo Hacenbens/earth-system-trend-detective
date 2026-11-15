@@ -54,6 +54,9 @@ cd frontend && npm ci && npm run dev       # http://localhost:3000 (terminal 2)
 ```
 The API URL comes from `NEXT_PUBLIC_API_URL` (default `http://127.0.0.1:8000`, see `frontend/.env.example`). API client: `frontend/src/lib/api.js`; screens: Layer 1 detect (`frontend/src/components/DetectWorkbench.js`), Layer 2 investigate (`EvidencePanel.js`, shown under the detect results). Never put `TEAM_API_KEY` in front-end code or `NEXT_PUBLIC_*` variables: they are public.
 
+## Deploy
+Front end on Vercel (root `frontend/`), API as a Docker image (`Dockerfile`). Steps, settings and checks: `docs/deployment.md`.
+
 ## Team rules
 - **Read `docs/decisions/DECISIONS.md` first.** Change scope only via a new decision entry. Never edit an accepted one.
 - **Every claim** shown in the app or slides needs a row in `docs/research/evidence_ledger.md`. Cite only papers marked `READ` in `literature.md`.
