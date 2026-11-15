@@ -2,7 +2,19 @@
 
 import { useMemo, useState } from 'react';
 import { AlertTriangle, ArrowRight, CheckCircle2, Info } from 'lucide-react';
-import { pText, scaler, senEnds, signed, useLiveDetect, useLiveInvestigate, zScores } from '@/lib/liveLayers';
+import {
+  PROJECTION_END,
+  pText,
+  scaler,
+  senEnds,
+  signed,
+  useLiveDetect,
+  useLiveInvestigate,
+  useLiveMechanisms,
+  useLiveProject,
+  useLiveSolve,
+  zScores,
+} from '@/lib/liveLayers';
 
 /* ============================================================================
  * PAGE 10: LAYER 01 — DETECT / TREND EXPLORER
@@ -842,12 +854,49 @@ const MECHANISMS = [
   },
 ];
 
+// ---- live feed: mechanism cards from GET /mechanisms (confirming one needs the team key: never from the browser)
+const OBS_MARK = { consistent: '✓', inconsistent: '✗', unclear: '?', not_tested: '–' };
+
+function liveMechanismCard(m) {
+  const c = m.counts || {};
+  const tested = (c.consistent || 0) + (c.inconsistent || 0) + (c.unclear || 0);
+  const total = tested + (c.not_tested || 0);
+  // "Supports" only when most expected observations are consistent AND the draft confidence is above low
+  const share = total ? (c.consistent || 0) / total : 0;
+  const status = !tested
+    ? 'Not tested'
+    : (c.inconsistent || 0) > (c.consistent || 0)
+      ? 'Contrasts'
+      : share >= 0.6 && m.confidence !== 'low'
+        ? 'Supports'
+        : 'Unclear';
+  const obs = m.expected_observations || [];
+  return {
+    id: m.mechanism_id,
+    name: m.name,
+    role: `${m.mechanism_id} · confidence ${m.confidence} · ${c.consistent || 0}/${total} consistent`,
+    status,
+    expected: m.description,
+    observed:
+      obs
+        .slice(0, 4)
+        .map((o) => `${OBS_MARK[o.status] ?? '?'} ${o.expectation}: ${o.observed}`)
+        .join(' · ') + (obs.length > 4 ? ` · (+${obs.length - 4} more in the evidence cards)` : ''),
+    alternative: `${m.interpretation_status}: ${m.interpretation}`,
+  };
+}
+
 export function ExplainLayerPage({
   investigation,
   onUpdateInvestigation,
   onNextLayer,
   onShowToast,
 }) {
+  const liveMech = useLiveMechanisms();
+  const mechanisms = useMemo(
+    () => (liveMech.status === 'ready' && liveMech.mechanisms.length ? liveMech.mechanisms.map(liveMechanismCard) : MECHANISMS),
+    [liveMech]
+  );
   const [selectedMechId, setSelectedMechId] = useState(MECHANISMS[0].id);
   const [confidence, setConfidence] = useState('Medium');
   const [notes, setNotes] = useState(
@@ -855,7 +904,7 @@ export function ExplainLayerPage({
       'Monsoon inflow and thermodynamic moisture supply best align with intensifying convective rainfall bursts, whereas aerosol forcing and sub-daily land feedbacks require higher-resolution validation.'
   );
 
-  const activeMech = MECHANISMS.find((m) => m.id === selectedMechId) ?? MECHANISMS[0];
+  const activeMech = mechanisms.find((m) => m.id === selectedMechId) ?? mechanisms[0];
 
   const handleSaveNotes = () => {
     onUpdateInvestigation({
@@ -899,7 +948,7 @@ export function ExplainLayerPage({
 
         {/* 5 Mechanism Cards */}
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {MECHANISMS.map((m) => {
+          {mechanisms.map((m) => {
             const active = selectedMechId === m.id;
             return (
               <button
@@ -955,8 +1004,8 @@ export function ExplainLayerPage({
               <p className="mt-1 text-[13px] text-[#131D38]">{activeMech.observed}</p>
             </div>
             <p className="text-[12px] text-[#5B6478]">
-              Alternative explanation: North Atlantic multidecadal SST variability may modulate
-              decadal amplitude independently of greenhouse warming.
+              {activeMech.alternative ??
+                'Alternative explanation: North Atlantic multidecadal SST variability may modulate decadal amplitude independently of greenhouse warming.'}
             </p>
           </div>
 
@@ -1044,10 +1093,59 @@ const SCENARIOS = [
   },
 ];
 
+// ---- live feed: POST /project (scenarios, not forecasts) mapped onto SCENARIOS above
+const SCENARIO_KEY = { stabilization: 'stabilization', continuation: 'trend_continuation', stress: 'increased_stress' };
+
+function liveScenarios(live) {
+  const r = live.rain;
+  return SCENARIOS.map((sc) => {
+    const key = SCENARIO_KEY[sc.id];
+    const desc = {
+      stabilization: `Rainfall stays at the ${r.baseline_period.join('–')} mean (${Math.round(r.baseline_value)} ${r.unit}).`,
+      continuation: `The historical Sen slope continues: ${signed(r.assumed_slope, 2)} ${r.slope_unit}.`,
+      stress: `Trend plus an assumed stress of ${signed(r.stress_per_year, 1)} ${r.unit}/yr.`,
+    }[sc.id];
+    const rx = live.rx1day?.pct_difference_at_end?.[key];
+    return {
+      ...sc,
+      desc,
+      precipDelta: `${signed(r.pct_difference_at_end?.[key])}% (${signed(r.difference_at_end?.[key], 0)} ${r.unit})`,
+      rx1dayDelta: live.rx1day ? `${signed(rx)}%` : 'Sahel box only',
+      line: r.projection?.[key] || [],
+    };
+  });
+}
+
 export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextLayer }) {
   const [selectedScenario, setSelectedScenario] = useState(SCENARIOS[1].id);
   const [moisturePerturb, setMoisturePerturb] = useState(8);
   const [drySpellPerturb, setDrySpellPerturb] = useState(12);
+  const liveProj = useLiveProject(investigation);
+  const isLiveProj = liveProj.status === 'ready' && !!liveProj.rain;
+  const scenarios = useMemo(() => (isLiveProj ? liveScenarios(liveProj) : SCENARIOS), [isLiveProj, liveProj]);
+  // Chart geometry on real values: history (start..2025) left of the divider, scenarios (2025..2050) right of it.
+  const geom = useMemo(() => {
+    if (!isLiveProj) return null;
+    const lines = scenarios.map((s) => s.line).flat();
+    const hist = liveProj.history.filter((p) => p.x <= 2025);
+    const all = [...hist, ...lines.map((p) => ({ x: p.year, y: p.value }))];
+    if (all.length < 2) return null;
+    const { toY } = scaler(all, { x0: 0, x1: 1, y0: 20, y1: 172 });
+    const h0 = hist.length ? hist[0].x : 2025;
+    const xHist = (yr) => 24 + ((yr - h0) / Math.max(1, 2025 - h0)) * 226;
+    const xProj = (yr) => 250 + ((yr - 2025) / (PROJECTION_END - 2025)) * 286;
+    const path = (pts) => pts.map((p, i) => `${i ? 'L' : 'M'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+    const ends = scenarios.map((s) => s.line[s.line.length - 1]?.value).filter((v) => v != null);
+    return {
+      history: path(hist.map((p) => [xHist(p.x), toY(p.y)])),
+      paths: Object.fromEntries(scenarios.map((s) => [s.id, path(s.line.map((p) => [xProj(p.year), toY(p.value)]))])),
+      start: toY(liveProj.rain.baseline_value),
+      toY,
+      hi: Math.max(...ends),
+      lo: Math.min(...ends),
+      firstYear: h0,
+    };
+  }, [isLiveProj, liveProj, scenarios]);
 
   return (
     <div className="space-y-6">
@@ -1062,6 +1160,7 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
             <p className="text-[13px] text-[#A9B1C6]">
               Pathways below (2025–2050) are diagnostic sensitivity envelopes conditioned on assumed
               climate stresses—not weather predictions.
+              {isLiveProj && liveProj.rain.warnings?.length > 1 ? ` ${liveProj.rain.warnings.slice(1).join(' ')}` : ''}
             </p>
           </div>
         </div>
@@ -1076,7 +1175,7 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
             </h2>
 
             <div className="space-y-2.5">
-              {SCENARIOS.map((sc) => (
+              {scenarios.map((sc) => (
                 <button
                   key={sc.id}
                   type="button"
@@ -1141,7 +1240,9 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
           <div className="lg:col-span-7 flex flex-col justify-between">
             <div className="rounded-[22px] bg-[#131D38] p-5 text-[#f4f1ea]">
               <div className="flex items-center justify-between font-mono text-[10px] uppercase text-[#A9B1C6]">
-                <span>HISTORICAL BASELINE (2001–2025) → CONDITIONAL FAN (2025–2050)</span>
+                <span>
+                  HISTORICAL BASELINE ({geom ? geom.firstYear : 2001}–2025) → CONDITIONAL FAN (2025–{PROJECTION_END})
+                </span>
                 <span className="text-[#ffc20d]">SENSITIVITY ENVELOPE</span>
               </div>
 
@@ -1163,23 +1264,30 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
                 />
                 {/* Historical line */}
                 <path
-                  d="M 24 128 L 70 118 L 116 122 L 162 110 L 208 106 L 250 98"
+                  d={geom?.history || 'M 24 128 L 70 118 L 116 122 L 162 110 L 208 106 L 250 98'}
                   fill="none"
                   stroke="#f4f1ea"
                   strokeWidth="2.4"
                 />
                 {/* Shaded uncertainty fan */}
                 <polygon
-                  points={`250,98 536,${Math.max(20, 42 - moisturePerturb * 0.6)} 536,${Math.min(165, 118 + drySpellPerturb * 0.5)}`}
+                  points={
+                    geom
+                      ? `250,${geom.start.toFixed(1)} 536,${Math.max(16, geom.toY(geom.hi * (1 + moisturePerturb / 100))).toFixed(1)} 536,${Math.min(176, geom.toY(geom.lo * (1 - drySpellPerturb / 100))).toFixed(1)}`
+                      : `250,98 536,${Math.max(20, 42 - moisturePerturb * 0.6)} 536,${Math.min(165, 118 + drySpellPerturb * 0.5)}`
+                  }
                   fill="#ffc20d"
                   fillOpacity="0.14"
                 />
-                {SCENARIOS.map((sc) => (
+                {scenarios.map((sc) => (
                   <path
                     key={sc.id}
-                    d={`M 250 98 Q 390 ${Math.round((98 + sc.yEnd) / 2)} 536 ${
-                      sc.id === 'stress' ? Math.max(24, sc.yEnd - moisturePerturb * 0.5) : sc.yEnd
-                    }`}
+                    d={
+                      geom?.paths[sc.id] ||
+                      `M 250 98 Q 390 ${Math.round((98 + sc.yEnd) / 2)} 536 ${
+                        sc.id === 'stress' ? Math.max(24, sc.yEnd - moisturePerturb * 0.5) : sc.yEnd
+                      }`
+                    }
                     fill="none"
                     stroke={sc.color}
                     strokeWidth={selectedScenario === sc.id ? 3.2 : 1.6}
@@ -1194,7 +1302,7 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
                   fontSize="10"
                   fontFamily="JetBrains Mono, monospace"
                 >
-                  2001
+                  {geom ? geom.firstYear : 2001}
                 </text>
                 <text
                   x="236"
@@ -1212,7 +1320,7 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
                   fontSize="10"
                   fontFamily="JetBrains Mono, monospace"
                 >
-                  2050
+                  {PROJECTION_END}
                 </text>
               </svg>
             </div>
@@ -1227,7 +1335,7 @@ export function ProjectLayerPage({ investigation, onUpdateInvestigation, onNextL
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E6E0D2]">
-                  {SCENARIOS.map((sc) => (
+                  {scenarios.map((sc) => (
                     <tr
                       key={sc.id}
                       className={selectedScenario === sc.id ? 'bg-white font-semibold' : ''}
@@ -1300,8 +1408,29 @@ const INTERVENTIONS = [
   },
 ];
 
+// ---- live feed: POST /solve (qualitative comparison) mapped onto INTERVENTIONS above
+const INTERVENTION_ID = {
+  rainwater_harvesting: 'harvesting',
+  mulching: 'mulching',
+  agroforestry: 'agroforestry',
+  soil_water_conservation: 'bunds',
+};
+
+function liveInterventions(live) {
+  return live.comparison.map((c) => ({
+    id: INTERVENTION_ID[c.id] ?? c.id,
+    name: c.name,
+    target: c.problem,
+    qualitativeEffect: `${c.expected_effect}. Evidence: ${c.evidence}.`,
+    limitations: `Unknowns: ${(c.unknowns || []).join(', ')}`,
+  }));
+}
+
 export function SolveLayerPage({ investigation, onUpdateInvestigation, onNextLayer }) {
   const [selectedIds, setSelectedIds] = useState(['harvesting', 'bunds']);
+  const liveSol = useLiveSolve(investigation);
+  const isLiveSol = liveSol.status === 'ready' && liveSol.comparison.length > 0;
+  const interventions = useMemo(() => (isLiveSol ? liveInterventions(liveSol) : INTERVENTIONS), [isLiveSol, liveSol]);
 
   const toggleIntervention = (id) => {
     setSelectedIds((prev) =>
@@ -1326,7 +1455,7 @@ export function SolveLayerPage({ investigation, onUpdateInvestigation, onNextLay
           </p>
 
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {INTERVENTIONS.map((item) => {
+            {interventions.map((item) => {
               const active = selectedIds.includes(item.id);
               return (
                 <button
@@ -1379,6 +1508,7 @@ export function SolveLayerPage({ investigation, onUpdateInvestigation, onNextLay
               <strong>Honesty guard:</strong> Because 0.1° satellite precipitation lacks plot-scale
               soil infiltration parameters, intervention effects remain qualitative sensitivity
               comparisons—not site-certified yield predictions.
+              {isLiveSol && liveSol.note ? ` ${liveSol.note}` : ''}
             </div>
           </div>
 

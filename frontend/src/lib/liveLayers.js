@@ -1,6 +1,6 @@
 'use client';
 /**
- * Feeds the EarthSignal layer pages with the backend API (Layers 1-2) without changing their UI.
+ * Feeds the EarthSignal layer pages with the backend API (Layers 1-5) without changing their UI.
  * Drafted with AI assistance (Claude Code). See docs/submission/si_usage.md.
  *
  * - Maps an EarthSignal investigation (region name, years, extremes flag) to a backend investigation, created once and
@@ -11,7 +11,7 @@
  */
 import { useEffect, useState } from 'react';
 
-import { ApiError, createInvestigation, detect, getInvestigation, investigate } from './api';
+import { ApiError, createInvestigation, detect, getInvestigation, getMechanisms, investigate, project, solve } from './api';
 
 const ID_MAP_KEY = 'earthsignal_backend_ids_v1';
 export const EXTREME_METRICS = ['Rx1day', 'R95p', 'SDII', 'CDD'];
@@ -92,6 +92,37 @@ function fetchInvestigate(inv, region) {
   return once(`investigate:${inv.id}:${configKey(inv, region)}`, async () => {
     const id = await ensureBackendInvestigation(inv, region);
     return investigate(id, { regionIds: [region], evidence: ALL_EVIDENCE, compareTo: 'rain_total' });
+  });
+}
+
+export const PROJECTION_END = 2050;
+
+function fetchProject(inv, region, metric) {
+  return once(`project:${inv.id}:${configKey(inv, region)}:${metric}`, async () => {
+    const id = await ensureBackendInvestigation(inv, region);
+    return project(id, {
+      region_id: region,
+      metric,
+      baseline_period: [inv.startYear, inv.endYear],
+      start_year: 2025,
+      end_year: PROJECTION_END,
+    });
+  });
+}
+
+/** Both projections; Rx1day may be unavailable for the region (warehouse has it for the Sahel box only). */
+function fetchProjects(inv, region) {
+  return Promise.all([
+    fetchProject(inv, region, 'rain_total'),
+    fetchProject(inv, region, 'Rx1day').catch(() => null),
+    fetchDetect(inv, region),
+  ]);
+}
+
+function fetchSolve(inv, region) {
+  return once(`solve:${inv.id}:${configKey(inv, region)}`, async () => {
+    const id = await ensureBackendInvestigation(inv, region);
+    return solve(id, {});
   });
 }
 
@@ -190,3 +221,41 @@ export function zScores(points) {
   const sd = Math.sqrt(v.reduce((s, x) => s + (x - mean) ** 2, 0) / Math.max(1, v.length - 1)) || 1;
   return points.map((p) => ({ x: p.x, y: (p.y - mean) / sd }));
 }
+
+/** Layer 3: mechanism cards (catalogue, same for every region). { status, mechanisms } */
+let mechanismsPromise = null;
+export function useLiveMechanisms() {
+  const [state, setState] = useState({ status: 'loading' });
+  useEffect(() => {
+    let alive = true;
+    mechanismsPromise = mechanismsPromise || getMechanisms().catch((e) => {
+      mechanismsPromise = null;
+      throw e;
+    });
+    mechanismsPromise
+      .then((mechanisms) => alive && setState({ status: 'ready', mechanisms }))
+      .catch((error) => alive && setState({ status: 'error', error }));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return state;
+}
+
+/** Layer 4: { status, rain (project response), rx1day (or null), history [{x, y}] } */
+export function useLiveProject(investigation) {
+  return useLive(investigation, fetchProjects, ([rain, rx1day, det]) => {
+    const main = (det.results || []).find((r) => r.metric === 'rain_total');
+    return {
+      rain,
+      rx1day,
+      history: (main?.series || []).filter((p) => p.value != null).map((p) => ({ x: Number(p.date), y: p.value })),
+    };
+  });
+}
+
+/** Layer 5: { status, comparison [...], note } */
+export function useLiveSolve(investigation) {
+  return useLive(investigation, fetchSolve, (d) => ({ comparison: d.comparison || [], note: d.note }));
+}
+
