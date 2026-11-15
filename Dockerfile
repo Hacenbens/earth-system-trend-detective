@@ -17,8 +17,10 @@ COPY data/app/mechanisms.json ./data/app/mechanisms.json
 COPY outputs/earthcare/case_metrics.csv ./outputs/earthcare/case_metrics.csv
 COPY docs/research/evidence_ledger.md ./docs/research/evidence_ledger.md
 
+# commit shown by /health: --build-arg GIT_COMMIT locally; on Render the RENDER_GIT_COMMIT build variable
 ARG GIT_COMMIT=unknown
-RUN WAREHOUSE_GIT_COMMIT=$GIT_COMMIT PYTHONPATH=src python scripts/build_warehouse.py \
+ARG RENDER_GIT_COMMIT=
+RUN WAREHOUSE_GIT_COMMIT=${RENDER_GIT_COMMIT:-$GIT_COMMIT} PYTHONPATH=src python scripts/build_warehouse.py \
     && useradd --create-home --uid 10001 app \
     && mkdir -p /app/data/app/investigations \
     && chown -R app /app/data/app/investigations

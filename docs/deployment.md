@@ -7,12 +7,27 @@ Two parts, two hosts:
 | Part | Where | What is deployed |
 |---|---|---|
 | Front end (Next.js, `frontend/`) | **Vercel** | built from GitHub on every push |
-| API (FastAPI + SQLite warehouse) | **Octanium** (any host that runs a Docker image or a Dockerfile) | `Dockerfile` at the repository root |
+| API (FastAPI + SQLite warehouse) | **Render** (Docker web service, Blueprint `render.yaml`) | `Dockerfile` at the repository root |
 
 The judges get the Vercel URL. It must work without login: the API needs no login for reading and analysing; only
 `/explain` needs the team key.
 
-## 1. API (Docker)
+## 1. API on Render
+
+1. Merge PR #5 into `main` (the Blueprint deploys `main`; edit `branch:` in `render.yaml` to deploy another branch).
+2. Render dashboard → **New → Blueprint** → connect GitHub → pick `Hacenbens/earth-system-trend-detective`.
+   Render reads `render.yaml` and creates the web service `earthsignal-api` (Docker, Frankfurt, health check `/health`).
+3. Fill the three secret values it asks for: `CORS_ORIGINS` (put a placeholder like `https://example.com` until the
+   Vercel URL exists), `TEAM_API_KEY` (new random value), `DEEPSEEK_API_KEY`.
+4. Apply. The first build takes a few minutes (Python packages + warehouse). The API URL is
+   `https://earthsignal-api.onrender.com` (or similar, shown on the service page). Render provides HTTPS.
+5. Check: `curl https://<api>/health` → `"status":"ok"` with the deployed git commit.
+
+Plan: `free` sleeps after 15 minutes without traffic and needs about a minute to wake up (the first page load of a
+judge would show "Loading…" for that minute). `starter` ($7/month) stays awake. Change it in the dashboard or in
+`render.yaml`. Every push to `main` redeploys (autoDeploy).
+
+## 1b. The same image on any other Docker host
 
 The image installs `requirements-api.txt` (8 packages), builds the warehouse from the committed CSVs and runs uvicorn
 as a non-root user. Image size about 500 MB. Tested locally: 47/47 smoke checks, health check `healthy`.
