@@ -4,13 +4,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol, Sequence
 
+from ..core.constants import ALPHA, ETCCDI_METRICS, SCENARIO_DISCLAIMER
+from ..core.enums import DatasetRole, EvidenceStatus, RainfallMetric, ScenarioKind, TrendDirection
 from .models import DatasetAvailability, TrendStats
 
-ALPHA = 0.05
-MIN_SEASONS = 15                      # shortest series that may carry a trend test
-FIRST_YEAR, LAST_YEAR = 1998, 2025    # IMERG V07 Final record used for trends (D-006)
-TREND_ROLES = ("trend", "check", "supporting")
-SENSITIVITY_SPAN = 12                 # start-year sensitivity: first year .. first year + 12
+TREND_ROLES = (DatasetRole.TREND, DatasetRole.CHECK, DatasetRole.SUPPORTING)
 
 
 # ------------------------------------------------------------------ dataset choice (open/closed: swap the policy)
@@ -21,7 +19,7 @@ class DatasetRankingPolicy(Protocol):
 class RoleThenCoveragePolicy:
     """Trend datasets first, then independent checks, then supporting data; longer records first. Excludes
     near-real-time and case-study datasets, which must never carry a trend."""
-    ORDER = {"trend": 0, "check": 1, "supporting": 2}
+    ORDER = {DatasetRole.TREND: 0, DatasetRole.CHECK: 1, DatasetRole.SUPPORTING: 2}
 
     def rank(self, candidates):
         allowed = [c for c in candidates if c.dataset.role in TREND_ROLES]
@@ -38,15 +36,15 @@ class TrendVerdict:
 
 
 def judge_trend(stats: TrendStats, alpha: float = ALPHA) -> TrendVerdict:
-    hint = "increasing" if stats.sen_slope > 0 else "decreasing" if stats.sen_slope < 0 else "flat"
+    hint = TrendDirection.INCREASING if stats.sen_slope > 0 else TrendDirection.DECREASING if stats.sen_slope < 0 else TrendDirection.FLAT
     sig = stats.mk_p < alpha
-    if hint == "flat":
+    if hint == TrendDirection.FLAT:
         wording = "No change"
     elif sig:
         wording = f"Significant {hint} trend"
     else:
         wording = f"{hint.capitalize()} tendency, not statistically significant"
-    return TrendVerdict(hint if sig else "no_significant_trend", hint, sig, wording)
+    return TrendVerdict(hint if sig else TrendDirection.NO_SIGNIFICANT_TREND, hint, sig, wording)
 
 
 # ------------------------------------------------------------------ evidence (Layer 2)
@@ -61,19 +59,17 @@ MECHANISM_FOR_VARIABLE = {"TQV": "M-01", "mfc_mm_day": "M-01", "QV2M": "M-02", "
 
 
 def expected_sign(variable: str, compare_to: str) -> int:
-    return EXPECTED_SIGN.get(variable, 0) * (1 if compare_to == "rain_total" else -1)
+    return EXPECTED_SIGN.get(variable, 0) * (1 if compare_to == RainfallMetric.RAIN_TOTAL else -1)
 
 
 def evidence_status(statistic: float, p_value: float, expected: int, alpha: float = ALPHA) -> str:
     """supporting = significant with the predicted sign; contrasting = significant, opposite sign; else unclear."""
     if p_value >= alpha or expected == 0:
-        return "unclear"
-    return "supporting" if (statistic > 0) == (expected > 0) else "contrasting"
+        return EvidenceStatus.UNCLEAR
+    return EvidenceStatus.SUPPORTING if (statistic > 0) == (expected > 0) else EvidenceStatus.CONTRASTING
 
 
 # ------------------------------------------------------------------ evidence-ledger references shown next to numbers
-_EXTREMES = ("PRCPTOT", "wet_days", "SDII", "Rx1day", "Rx5day", "R10mm", "R20mm", "R95p", "R95pTOT", "CDD")
-EXTREME_METRICS = ("PRCPTOT", "wet_days", "SDII", "Rx1day", "R95p", "CDD")
 
 
 def evidence_ids_for(region: str, metric: str) -> list[str]:
@@ -81,25 +77,25 @@ def evidence_ids_for(region: str, metric: str) -> list[str]:
         return ["E-005"] if region == "sahel" else ["E-007"]
     if region == "east" and metric == "CDD":
         return ["E-007"]
-    if region == "sahel" and metric in _EXTREMES:
+    if region == "sahel" and metric in ETCCDI_METRICS:
         return ["E-006"]
     return []
 
 
 # ------------------------------------------------------------------ scenarios (Layer 4)
-SCENARIO_FORMULAS = {"stabilization": "X(t) = X0", "trend_continuation": "X(t) = X0 + beta (t - t0)",
-                     "increased_stress": "X(t) = X0 + beta (t - t0) + delta (t - t0)"}
+SCENARIO_FORMULAS = {ScenarioKind.STABILIZATION: "X(t) = X0", ScenarioKind.TREND_CONTINUATION: "X(t) = X0 + beta (t - t0)",
+                     ScenarioKind.INCREASED_STRESS: "X(t) = X0 + beta (t - t0) + delta (t - t0)"}
 
 
 def scenario_value(kind: str, x0: float, beta: float, delta: float, t0: int, t: int) -> float:
-    if kind == "stabilization":
+    if kind == ScenarioKind.STABILIZATION:
         return x0
     v = x0 + beta * (t - t0)
-    return v + delta * (t - t0) if kind == "increased_stress" else v
+    return v + delta * (t - t0) if kind == ScenarioKind.INCREASED_STRESS else v
 
 
 def scenario_warnings(trend_significant: bool, p_value: float) -> list[str]:
-    w = ["Scenario, not a forecast."]
+    w = [SCENARIO_DISCLAIMER]
     if not trend_significant:
         w.append(f"The historical trend is not statistically significant (p = {p_value:.2f}): "
                  "trend continuation is an assumption, not an expectation.")

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
+from ....core.constants import API_PREFIX
 from ..container import Container, get_container
 from ..dto import DetectDTO, ExplainDTO, InvestigateDTO, InvestigationCreateDTO, ProjectDTO, SolveDTO
 from ..responses import to_response, to_text
 
-router = APIRouter(prefix="/api/v1/investigations", tags=["investigations"])
+router = APIRouter(prefix=f"{API_PREFIX}/investigations", tags=["investigations"])
 
 
 @router.post("", status_code=201, summary="Create an investigation (global inputs)")

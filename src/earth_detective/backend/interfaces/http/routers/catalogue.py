@@ -3,10 +3,12 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from ....application.commands import SeriesQuery
+from ....core.constants import API_PREFIX
+from ....core.enums import Grain
 from ..container import Container, get_container
 from ..responses import to_response
 
-router = APIRouter(prefix="/api/v1", tags=["catalogue"])
+router = APIRouter(prefix=API_PREFIX, tags=["catalogue"])
 
 
 @router.get("/regions", summary="Preset regions as GeoJSON")
@@ -25,7 +27,7 @@ def variables(c: Container = Depends(get_container)):
 
 
 @router.get("/series", summary="Stateless time series for charts")
-def series(region: str = "sahel", variable: str = "rain_total", dataset: str = "auto", grain: str = "season",
+def series(region: str = "sahel", variable: str = "rain_total", dataset: str = "auto", grain: Grain = Grain.SEASON,
            c: Container = Depends(get_container)):
     return to_response(c.get_series.execute(SeriesQuery(region, variable, dataset, grain)))
 

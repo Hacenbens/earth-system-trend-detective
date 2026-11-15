@@ -3,6 +3,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from ..core.constants import DEFAULT_REGION, FIRST_YEAR, LAST_YEAR, SEASON_MONTHS
+from ..core.enums import EvidenceCategory, Grain, RainfallMetric, ScenarioKind
+
 
 @dataclass(frozen=True)
 class CreateInvestigationCommand:
@@ -11,7 +14,7 @@ class CreateInvestigationCommand:
     start_year: int
     end_year: int
     variable: str = "precipitation"
-    season: tuple[int, ...] = (6, 7, 8, 9)
+    season: tuple[int, ...] = SEASON_MONTHS
 
 
 @dataclass(frozen=True)
@@ -28,9 +31,9 @@ class DetectCommand:
 class InvestigateCommand:
     investigation_id: str
     region_ids: tuple[str, ...] | None = None
-    evidence: tuple[str, ...] = ("moisture", "circulation", "dust", "land")
+    evidence: tuple[str, ...] = (EvidenceCategory.MOISTURE, EvidenceCategory.CIRCULATION, EvidenceCategory.DUST, EvidenceCategory.LAND)
     variables: tuple[str, ...] | None = None
-    compare_to: str = "rain_total"
+    compare_to: str = RainfallMetric.RAIN_TOTAL
 
 
 @dataclass(frozen=True)
@@ -51,10 +54,10 @@ class ProjectCommand:
     investigation_id: str
     region_id: str | None = None
     metric: str = "rain_total"
-    baseline_period: tuple[int, int] = (1998, 2025)
+    baseline_period: tuple[int, int] = (FIRST_YEAR, LAST_YEAR)
     start_year: int = 2025
     end_year: int = 2035
-    scenarios: tuple[str, ...] = ("stabilization", "trend_continuation", "increased_stress")
+    scenarios: tuple[str, ...] = tuple(ScenarioKind)
     stress_per_year: float = -2.0
     assumptions: str = "Historical trend continues"
 
@@ -68,7 +71,7 @@ class SolveCommand:
 
 @dataclass(frozen=True)
 class SeriesQuery:
-    region: str = "sahel"
-    variable: str = "rain_total"
+    region: str = DEFAULT_REGION
+    variable: str = RainfallMetric.RAIN_TOTAL
     dataset: str = "auto"
-    grain: str = "season"
+    grain: str = Grain.SEASON

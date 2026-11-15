@@ -6,6 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from ...core.constants import FIRST_YEAR, LAST_YEAR, SEASON_MONTHS
+from ...core.enums import Confidence, EvidenceCategory, ExpectationStatus, RainfallMetric, ScenarioKind
 from ...application.commands import (CreateInvestigationCommand, DetectCommand, ExplainCommand, InvestigateCommand, ProjectCommand,
                                      SolveCommand)
 
@@ -13,10 +15,10 @@ from ...application.commands import (CreateInvestigationCommand, DetectCommand, 
 class InvestigationCreateDTO(BaseModel):
     name: str = Field("Sahel Rainfall Study", min_length=1, max_length=120)
     region_id: str = "sahel"
-    start_year: int = 1998
-    end_year: int = 2025
+    start_year: int = FIRST_YEAR
+    end_year: int = LAST_YEAR
     variable: Literal["precipitation"] = "precipitation"
-    season: list[int] = [6, 7, 8, 9]
+    season: list[int] = list(SEASON_MONTHS)
 
     def to_command(self) -> CreateInvestigationCommand:
         return CreateInvestigationCommand(self.name, self.region_id, self.start_year, self.end_year, self.variable, tuple(self.season))
@@ -36,9 +38,9 @@ class DetectDTO(BaseModel):
 
 class InvestigateDTO(BaseModel):
     region_ids: list[str] | None = None
-    evidence: list[Literal["moisture", "circulation", "dust", "land", "storm_structure", "vegetation"]] = ["moisture", "circulation", "dust", "land"]
+    evidence: list[EvidenceCategory] = [EvidenceCategory.MOISTURE, EvidenceCategory.CIRCULATION, EvidenceCategory.DUST, EvidenceCategory.LAND]
     variables: list[str] | None = None
-    compare_to: Literal["rain_total", "CDD"] = "rain_total"
+    compare_to: RainfallMetric = RainfallMetric.RAIN_TOTAL
 
     def to_command(self, inv_id: str) -> InvestigateCommand:
         return InvestigateCommand(inv_id, tuple(self.region_ids) if self.region_ids else None, tuple(self.evidence),
@@ -48,12 +50,12 @@ class InvestigateDTO(BaseModel):
 class ExplainDTO(BaseModel):
     mechanism_id: str
     reviewer: str = Field(..., min_length=1, max_length=80, description="Who confirms the assessment")
-    status_overrides: dict[int, Literal["consistent", "inconsistent", "unclear", "not_tested"]] = {}
+    status_overrides: dict[int, ExpectationStatus] = {}
     supporting_evidence_ids: list[str] | None = None
     contradicting_evidence_ids: list[str] | None = None
     alternatives: list[str] | None = None
     interpretation: str | None = Field(None, max_length=4000)
-    confidence: Literal["low", "low-medium", "medium", "medium-high", "high", "not_assessed"] | None = None
+    confidence: Confidence | None = None
 
     def to_command(self, inv_id: str) -> ExplainCommand:
         t = lambda v: tuple(v) if v else None  # noqa: E731
@@ -69,10 +71,10 @@ class StressDTO(BaseModel):
 class ProjectDTO(BaseModel):
     region_id: str | None = None
     metric: str = "rain_total"
-    baseline_period: tuple[int, int] = (1998, 2025)
+    baseline_period: tuple[int, int] = (FIRST_YEAR, LAST_YEAR)
     start_year: int = Field(2025, ge=2020, le=2030)
     end_year: int = Field(2035, ge=2026, le=2060)
-    scenarios: list[Literal["stabilization", "trend_continuation", "increased_stress"]] = ["stabilization", "trend_continuation", "increased_stress"]
+    scenarios: list[ScenarioKind] = list(ScenarioKind)
     stress: StressDTO = StressDTO(delta_per_year=-2.0)
     assumptions: str = Field("Historical trend continues", max_length=1000)
 

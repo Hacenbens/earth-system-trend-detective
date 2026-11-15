@@ -4,6 +4,8 @@ from __future__ import annotations
 import csv
 import io
 
+from ..core.constants import AI_USE_NOTE, ASSOCIATION_DISCLAIMER
+from ..core.enums import Layer
 from ..domain.ports import BuildInfoReader, DatasetReferenceReader
 from ..domain.result import AppError, Err, Ok, Result
 from .investigations import investigation_view
@@ -11,7 +13,7 @@ from .services import InvestigationLoader
 
 LIMITATIONS = ["28 seasons (1998-2025) is a short record", "Atmospheric variables come from a reanalysis (MERRA-2)",
                "Daily heavy-rain indices are not homogeneous across the 2014 satellite change (E-006)",
-               "Associations are not causes; scenarios are not forecasts"]
+               f"{ASSOCIATION_DISCLAIMER} Scenarios are not forecasts."]
 
 
 class BuildReport:
@@ -25,13 +27,13 @@ class BuildReport:
         v = investigation_view(inv_r.value)
         b = self._build.latest() or {}
         return Ok({"overview": {"id": v["id"], "name": v["config"]["name"], "config": v["config"], "prepared": v["prepared"]},
-                   "trend_detection": v["layers"].get("detect"), "environmental_investigation": v["layers"].get("investigate"),
-                   "physical_explanation": v["layers"].get("explain"), "future_scenarios": v["layers"].get("project"),
-                   "solution_comparison": v["layers"].get("solve"), "limitations": LIMITATIONS,
+                   "trend_detection": v["layers"].get(Layer.DETECT), "environmental_investigation": v["layers"].get(Layer.INVESTIGATE),
+                   "physical_explanation": v["layers"].get(Layer.EXPLAIN), "future_scenarios": v["layers"].get(Layer.PROJECT),
+                   "solution_comparison": v["layers"].get(Layer.SOLVE), "limitations": LIMITATIONS,
                    "references": {"datasets": self._refs.references(), "evidence_ledger": "docs/research/evidence_ledger.md",
                                   "literature": "docs/research/literature.md (TO-VERIFY until read)"},
                    "build": {"built_at": b.get("built_at"), "git_commit": b.get("git_commit")},
-                   "ai_use": "Analysis code and text drafted with AI assistance (Claude Code); see docs/submission/si_usage.md"})
+                   "ai_use": AI_USE_NOTE})
 
 
 class ExportReportCsv:
@@ -42,7 +44,7 @@ class ExportReportCsv:
         inv_r = self._loader.load(investigation_id)
         if not inv_r.is_ok:
             return inv_r
-        det = inv_r.value.layers.get("detect")
+        det = inv_r.value.layers.get(Layer.DETECT)
         if not det:
             return Err(AppError.conflict("run /detect before exporting the CSV report"))
         buf = io.StringIO()

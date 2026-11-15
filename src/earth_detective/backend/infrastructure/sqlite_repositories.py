@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import json
 import logging
-import math
 import sqlite3
 from pathlib import Path
 from typing import Any
 
+from ..core.helpers import json_safe
 from ..domain.models import (CaseStudy, Dataset, DatasetAvailability, Expectation, Mechanism, Region, SeasonPoint, Variable)
 
 log = logging.getLogger(__name__)
@@ -27,12 +27,8 @@ class SqliteWarehouse:
         self._con.row_factory = sqlite3.Row
         log.info("warehouse opened", extra={"event": "warehouse.opened", "path": str(path)})
 
-    @staticmethod
-    def _clean(v):
-        return None if isinstance(v, float) and (math.isnan(v) or math.isinf(v)) else v
-
     def rows(self, sql: str, params: tuple = ()) -> list[dict[str, Any]]:
-        return [{k: self._clean(r[k]) for k in r.keys()} for r in self._con.execute(sql, params).fetchall()]
+        return [{k: json_safe(r[k]) for k in r.keys()} for r in self._con.execute(sql, params).fetchall()]
 
     def one(self, sql: str, params: tuple = ()) -> dict[str, Any] | None:
         r = self.rows(sql, params)

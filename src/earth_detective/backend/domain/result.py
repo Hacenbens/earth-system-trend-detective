@@ -5,20 +5,13 @@ Exceptions are kept for programming errors and infrastructure faults; the HTTP l
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
 from collections.abc import Callable, Iterable
+
+from ..core.enums import ErrorKind  # re-exported for convenience
 from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 U = TypeVar("U")
-
-
-class ErrorKind(str, Enum):
-    NOT_FOUND = "not_found"          # a requested entity does not exist
-    VALIDATION = "validation"        # the request breaks a business rule
-    CONFLICT = "conflict"            # the request needs a step that has not been done yet
-    NOT_AVAILABLE = "not_available"  # valid request, but the data or feature is not available
-    UNEXPECTED = "unexpected"        # fault outside the business rules
 
 
 @dataclass(frozen=True)

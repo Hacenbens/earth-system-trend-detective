@@ -4,6 +4,8 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict, dataclass
 
+from ..core.constants import ALPHA, MIN_SEASONS, SEASON_MONTHS, SENSITIVITY_SPAN
+from ..core.enums import DatasetKind, ExpectationStatus, QualityFlag
 from ..domain import rules
 from ..domain.models import Dataset, DatasetAvailability, Investigation, Mechanism, Region, SeasonPoint, Variable
 from ..domain.ports import CatalogueReader, InvestigationRepository, ObservationReader, TrendAnalyzer
@@ -58,7 +60,7 @@ class SeriesSelector:
         return self._policy.rank(self._obs.availability(region, variable))
 
     def select(self, region: str, variable: str, requested: str, year_start: int, year_end: int,
-               min_seasons: int = rules.MIN_SEASONS) -> Result[SelectedSeries]:
+               min_seasons: int = MIN_SEASONS) -> Result[SelectedSeries]:
         var = self._catalogue.variable(variable)
         if var is None:
             return Err(AppError.not_found(f"unknown variable '{variable}'", variable=variable))
@@ -96,21 +98,21 @@ class TrendAssessor:
         st = self._analyzer.analyze(series)
         verdict = rules.judge_trend(st)
         notes = sorted({p.note for p in s.points if p.note})
-        if s.dataset.kind == "reanalysis":
+        if s.dataset.kind == DatasetKind.REANALYSIS:
             notes.append("Reanalysis (model constrained by observations), not a direct measurement")
         out = {
             "region_id": region, "metric": metric, "label": s.variable.label, "unit": s.variable.unit, "dataset": s.dataset.code,
             "direction": verdict.direction, "direction_hint": verdict.hint, "wording": verdict.wording,
             "sen_slope": st.sen_slope, "slope_unit": f"{s.variable.unit}/yr", "slope_ci95": [st.slope_ci_low, st.slope_ci_high],
             "pct_per_decade": st.slope_pct_per_decade, "mk_s": st.mk_s, "mk_tau": st.mk_tau, "p_value": st.mk_p,
-            "significant": verdict.significant, "alpha": rules.ALPHA,
+            "significant": verdict.significant, "alpha": ALPHA,
             "autocorrelation": {"lag1": st.lag1_autocorr, "mk_hamed_rao_p": st.mk_hamed_rao_p, "mk_yue_wang_p": st.mk_yue_wang_p,
                                 "method": "Original Mann-Kendall reported; Hamed-Rao (variance floored at 1) and Yue-Wang pre-whitening as checks"},
             "cross_checks": {"ols_slope": st.ols_slope, "ols_p": st.ols_p, "ar1_slope": st.ar1_slope, "ar1_p": st.ar1_p,
                              "ar1_note": "AR(1) p is anti-conservative when the AR coefficient is negative and not significant"
                              if (st.ar1_phi or 0) < 0 else None},
             "n": st.n, "period": [st.start, st.end], "evidence_ids": rules.evidence_ids_for(region, metric),
-            "quality": {"suspect_seasons": sum(p.quality_flag == "suspect" for p in s.points), "notes": notes},
+            "quality": {"suspect_seasons": sum(p.quality_flag == QualityFlag.SUSPECT for p in s.points), "notes": notes},
             "series": [{"date": str(p.year), "value": p.value, "anomaly": p.value - st.mean, "missing": False, "quality_flag": p.quality_flag}
                        for p in s.points],
             "provenance": self._provenance(region, s, st, notes),
@@ -127,7 +129,7 @@ class TrendAssessor:
         return {"dataset": s.dataset.name, "dataset_code": s.dataset.code, "version": s.dataset.version, "agency": s.dataset.agency,
                 "kind": s.dataset.kind, "variable": s.variable.code, "units": s.variable.unit,
                 "box": {"lat": [r.lat_min, r.lat_max], "lon": [r.lon_min, r.lon_max]}, "period": [st.start, st.end],
-                "season": [6, 7, 8, 9], "method": "Mann-Kendall + Sen's slope (src/earth_detective/trend.py)", "limitations": notes}
+                "season": list(SEASON_MONTHS), "method": "Mann-Kendall + Sen's slope (src/earth_detective/trend.py)", "limitations": notes}
 
     def _independent_check(self, region, metric, s: SelectedSeries, y0, y1, st) -> dict | None:
         others = [c for c in self._selector.candidates(region, metric) if c.dataset.code != s.dataset.code]
@@ -142,9 +144,9 @@ class TrendAssessor:
 
     def _sensitivity(self, series: dict[int, float], st) -> list[dict]:
         out = []
-        for start in range(st.start, st.start + rules.SENSITIVITY_SPAN + 1):
+        for start in range(st.start, st.start + SENSITIVITY_SPAN + 1):
             sub = {y: v for y, v in series.items() if y >= start}
-            if len(sub) < rules.MIN_SEASONS:
+            if len(sub) < MIN_SEASONS:
                 break
             t = self._analyzer.analyze(sub)
             out.append({"start": start, "pct_per_decade": t.slope_pct_per_decade, "p_value": t.mk_p})
@@ -156,7 +158,7 @@ def mechanism_view(m: Mechanism) -> dict:
     exps = [asdict(e) for e in m.expectations]
     for e in exps:
         e["expectation_no"] = e.pop("no")
-    counts = {s: sum(e["status"] == s for e in exps) for s in ("consistent", "inconsistent", "unclear", "not_tested")}
+    counts = {s.value: sum(e["status"] == s for e in exps) for s in ExpectationStatus}
     return {"mechanism_id": m.mechanism_id, "name": m.name, "description": m.description, "confidence": m.confidence,
             "interpretation": m.interpretation, "interpretation_status": "DRAFT, to be confirmed by the science lead",
             "counts": counts, "expected_observations": exps,

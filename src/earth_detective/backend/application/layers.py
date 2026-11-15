@@ -4,6 +4,10 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict
 
+from ..core import helpers
+from ..core.constants import ASSOCIATION_DISCLAIMER, EXTREME_METRICS, RECENT_FROM_YEAR, UNUSUAL_SEASON_SD
+from ..core.enums import (DatasetKind, EvidenceCategory, EvidenceStatus, ExpectationStatus, Layer, RainfallMetric,
+                          ScenarioKind)
 from ..domain import rules
 from ..domain.ports import (AssociationAnalyzer, CaseStudyReader, Clock, InterventionCatalogue, InvestigationRepository,
                             MechanismReader, ObservationReader, TrendAnalyzer)
@@ -35,7 +39,7 @@ class DetectTrends:
         reg_r = self._regions.validate(regions)
         if not reg_r.is_ok:
             return reg_r
-        extremes = list(rules.EXTREME_METRICS) if cmd.extremes else []
+        extremes = list(EXTREME_METRICS) if cmd.extremes else []
         metrics = list(dict.fromkeys(list(cmd.metrics) + extremes))
         results, skipped = [], []
         for reg in regions:
@@ -47,10 +51,10 @@ class DetectTrends:
         if not results:
             return Err(AppError.not_available("no trend could be computed for this request", skipped=skipped))
         out = {"results": results, "skipped": skipped,
-               "recent_conditions": {reg: self._obs.recent_seasons(reg, "rain_total", 2024) for reg in regions},
+               "recent_conditions": {reg: self._obs.recent_seasons(reg, RainfallMetric.RAIN_TOTAL, RECENT_FROM_YEAR) for reg in regions},
                "handoff": {"regions": regions, "period": [inv.config.start_year, inv.config.end_year], "season": list(inv.config.season),
                            "metrics": metrics, "unusual_seasons": self._unusual(results)}}
-        inv.record("detect", out)
+        inv.record(Layer.DETECT, out)
         inv.updated_at = self._clock.now()
         self._repo.save(inv)
         log.info("detect completed", extra={"event": "layer.detect", "investigation_id": inv.id, "results": len(results), "skipped": len(skipped)})
@@ -59,9 +63,9 @@ class DetectTrends:
     @staticmethod
     def _unusual(results: list[dict]) -> list[dict]:
         out = set()
-        for r in (x for x in results if x["metric"] == "rain_total"):
-            sd = (sum(p["anomaly"] ** 2 for p in r["series"]) / len(r["series"])) ** 0.5
-            out |= {(r["region_id"], int(p["date"])) for p in r["series"] if abs(p["anomaly"]) > 1.5 * sd}
+        for r in (x for x in results if x["metric"] == RainfallMetric.RAIN_TOTAL):
+            sd = helpers.rms([p["anomaly"] for p in r["series"]])
+            out |= {(r["region_id"], int(p["date"])) for p in r["series"] if abs(p["anomaly"]) > UNUSUAL_SEASON_SD * sd}
         return [{"region_id": a, "year": b} for a, b in sorted(out)]
 
 
@@ -88,17 +92,17 @@ class InvestigateEvidence:
             for v in variables:
                 r = self._compare(reg, v, cmd.compare_to, inv.config.start_year, inv.config.end_year)
                 (comps.append(r.value) if r.is_ok else skipped.append(_error_entry(reg, "variable", v, r.error)))
-        notes = ["Associations, not causes. Seasonal (JJAS) values: lagged monthly tests are not available in the MVP."]
-        if "vegetation" in cmd.evidence:
+        notes = [f"{ASSOCIATION_DISCLAIMER} Seasonal (JJAS) values: lagged monthly tests are not available in the MVP."]
+        if EvidenceCategory.VEGETATION in cmd.evidence:
             notes.insert(0, "Vegetation (MODIS NDVI) is not in the warehouse yet (decision D-011, task T-22).")
-        want_cases = "storm_structure" in cmd.evidence or not cmd.variables
+        want_cases = EvidenceCategory.STORM_STRUCTURE in cmd.evidence or not cmd.variables
         out = {"comparisons": comps, "skipped": skipped,
                "case_studies": [self._case_view(c) for reg in regions for c in self._cases.case_studies(reg)] if want_cases else [],
                "notes": notes,
                "handoff": {"regions": regions, "compare_to": cmd.compare_to,
-                           "supporting": [c["variable"] for c in comps if c["status"] == "supporting"],
-                           "contrasting": [c["variable"] for c in comps if c["status"] == "contrasting"]}}
-        inv.record("investigate", out)
+                           "supporting": [c["variable"] for c in comps if c["status"] == EvidenceStatus.SUPPORTING],
+                           "contrasting": [c["variable"] for c in comps if c["status"] == EvidenceStatus.CONTRASTING]}}
+        inv.record(Layer.INVESTIGATE, out)
         inv.updated_at = self._clock.now()
         self._repo.save(inv)
         log.info("investigate completed", extra={"event": "layer.investigate", "investigation_id": inv.id, "comparisons": len(comps)})
@@ -123,7 +127,7 @@ class InvestigateEvidence:
                    "mechanism_id": rules.MECHANISM_FOR_VARIABLE.get(variable),
                    "variable_trend": {"per_decade": 10 * t.sen_slope, "pct_per_decade": t.slope_pct_per_decade, "p_value": t.mk_p},
                    "records": [{"year": p.year, "value": p.value, "anomaly": p.value - mean} for p in x.points],
-                   "quality": "reanalysis" if x.dataset.kind == "reanalysis" else "observation"})
+                   "quality": "reanalysis" if x.dataset.kind == DatasetKind.REANALYSIS else "observation"})
 
     @staticmethod
     def _case_view(c) -> dict:
@@ -136,7 +140,7 @@ class InvestigateEvidence:
 class ExplainMechanism:
     """Layer 3: store a researcher-confirmed mechanism assessment (AI drafts are never stored without a reviewer)."""
 
-    STATUSES = {"consistent", "inconsistent", "unclear", "not_tested"}
+    STATUSES = set(ExpectationStatus)
 
     def __init__(self, loader: InvestigationLoader, mechanisms: MechanismReader, repo: InvestigationRepository, clock: Clock):
         self._loader, self._mech, self._repo, self._clock = loader, mechanisms, repo, clock
@@ -179,7 +183,7 @@ class ExplainMechanism:
 class ProjectScenarios:
     """Layer 4: trend-continuation scenarios (never forecasts)."""
 
-    KINDS = set(rules.SCENARIO_FORMULAS)
+    KINDS = set(ScenarioKind)
 
     def __init__(self, loader: InvestigationLoader, regions: RegionValidator, assessor: TrendAssessor, repo: InvestigationRepository,
                  clock: Clock):
@@ -201,20 +205,20 @@ class ProjectScenarios:
         if not tr.is_ok:
             return tr
         t = tr.value
-        x0 = sum(p["value"] for p in t["series"]) / len(t["series"])
+        x0 = helpers.mean([p["value"] for p in t["series"]])
         beta = t["sen_slope"]
         years = range(cmd.start_year, cmd.end_year + 1)
         proj = {k: [{"year": y, "value": rules.scenario_value(k, x0, beta, cmd.stress_per_year, cmd.start_year, y)} for y in years]
                 for k in cmd.scenarios}
         end = {k: v[-1]["value"] for k, v in proj.items()}
-        ref = end.get("stabilization", x0)
+        ref = end.get(ScenarioKind.STABILIZATION, x0)
         out = {"region_id": region, "metric": cmd.metric, "unit": t["unit"], "baseline_period": list(cmd.baseline_period),
                "baseline_value": x0, "assumed_slope": beta, "slope_unit": t["slope_unit"], "stress_per_year": cmd.stress_per_year,
                "projection": proj, "difference_at_end": {k: v - ref for k, v in end.items()},
                "pct_difference_at_end": {k: 100 * (v / ref - 1) for k, v in end.items()}, "trend_p_value": t["p_value"],
                "warnings": rules.scenario_warnings(t["significant"], t["p_value"]),
                "formulas": {k: rules.SCENARIO_FORMULAS[k] for k in cmd.scenarios}, "assumptions": cmd.assumptions}
-        inv.record("project", out)
+        inv.record(Layer.PROJECT, out)
         inv.updated_at = self._clock.now()
         self._repo.save(inv)
         log.info("scenarios projected", extra={"event": "layer.project", "investigation_id": inv.id, "region": region, "metric": cmd.metric})
@@ -241,7 +245,7 @@ class CompareInterventions:
             return Err(AppError.validation(f"unknown intervention(s) {bad}", available=sorted(known)))
         out = {"mode": "qualitative", "comparison": [asdict(known[i]) for i in cmd.interventions],
                "note": "Qualitative comparison (layer contracts, Layer 5 output 3): no intervention effect is quantified without a published parameter."}
-        inv.record("solve", out)
+        inv.record(Layer.SOLVE, out)
         inv.updated_at = self._clock.now()
         self._repo.save(inv)
         log.info("interventions compared", extra={"event": "layer.solve", "investigation_id": inv.id, "count": len(cmd.interventions)})

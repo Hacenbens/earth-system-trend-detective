@@ -1,9 +1,6 @@
 """Logging system: structured JSON (default) or readable text lines, request-ID correlation, optional file.
 
-Environment:
-  LOG_LEVEL   DEBUG | INFO (default) | WARNING | ERROR
-  LOG_FORMAT  json (default) | text
-  LOG_FILE    optional path; logs are also written there (rotating, 5 x 5 MB)
+Configured from core.settings.Settings (LOG_LEVEL, LOG_FORMAT, LOG_FILE; see core/settings.py).
 Every record carries the current request ID (contextvar set by the HTTP middleware) and any `extra=` fields.
 """
 from __future__ import annotations
@@ -12,9 +9,12 @@ import contextvars
 import json
 import logging
 import logging.handlers
-import os
 import sys
 from datetime import datetime, timezone
+
+from ..core.constants import LOG_FILE_BACKUPS, LOG_FILE_MAX_BYTES
+from ..core.enums import LogFormat
+from ..core.settings import Settings
 
 request_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
 
@@ -50,20 +50,19 @@ class TextFormatter(logging.Formatter):
         return base
 
 
-def configure_logging(level: str | None = None, fmt: str | None = None, logfile: str | None = None) -> None:
-    level = (level or os.environ.get("LOG_LEVEL", "INFO")).upper()
-    formatter = TextFormatter() if (fmt or os.environ.get("LOG_FORMAT", "json")).lower() == "text" else JsonFormatter()
+def configure_logging(settings: Settings) -> None:
+    formatter = TextFormatter() if settings.log_format == LogFormat.TEXT else JsonFormatter()
     handlers: list[logging.Handler] = [logging.StreamHandler(sys.stdout)]
-    logfile = logfile or os.environ.get("LOG_FILE")
-    if logfile:
-        handlers.append(logging.handlers.RotatingFileHandler(logfile, maxBytes=5_000_000, backupCount=5, encoding="utf-8"))
+    if settings.log_file:
+        handlers.append(logging.handlers.RotatingFileHandler(settings.log_file, maxBytes=LOG_FILE_MAX_BYTES,
+                                                             backupCount=LOG_FILE_BACKUPS, encoding="utf-8"))
     root = logging.getLogger("earth_detective")
     root.handlers.clear()
     for h in handlers:
         h.setFormatter(formatter)
         h.addFilter(RequestIdFilter())
         root.addHandler(h)
-    root.setLevel(level)
+    root.setLevel(settings.log_level)
     root.propagate = False
     for noisy in ("uvicorn.access",):   # replaced by our own access log (with request id and duration)
         logging.getLogger(noisy).disabled = True

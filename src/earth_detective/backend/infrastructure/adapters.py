@@ -3,17 +3,15 @@ from __future__ import annotations
 
 import json
 import logging
-import re
-import uuid
 from dataclasses import asdict
-from datetime import datetime, timezone
 from pathlib import Path
 
-import numpy as np
 import pymannkendall as mk
 from scipy import stats
 
 from ...trend import trend_summary
+from ..core import helpers
+from ..core.constants import PCT_EPSILON, SEASON_MONTHS
 from ..domain.models import Association, Intervention, Investigation, InvestigationConfig, TrendStats
 
 log = logging.getLogger(__name__)
@@ -21,21 +19,19 @@ log = logging.getLogger(__name__)
 
 class SystemClock:
     def now(self) -> str:
-        return datetime.now(timezone.utc).isoformat(timespec="seconds")
+        return helpers.utc_now_iso()
 
 
 class JsonInvestigationRepository:
     """One JSON document per investigation (MVP decision, docs/app/api_contract.md). Atomic writes."""
-    _ID = re.compile(r"^[a-f0-9]{12}$")
-
     def __init__(self, directory: Path):
         self._dir = directory
 
     def _path(self, inv_id: str) -> Path | None:
-        return self._dir / f"{inv_id}.json" if self._ID.match(inv_id or "") else None
+        return self._dir / f"{inv_id}.json" if helpers.is_valid_investigation_id(inv_id) else None
 
     def next_id(self) -> str:
-        return uuid.uuid4().hex[:12]
+        return helpers.new_investigation_id()
 
     def save(self, inv: Investigation) -> Investigation:
         self._dir.mkdir(parents=True, exist_ok=True)
@@ -54,7 +50,7 @@ class JsonInvestigationRepository:
         d = json.loads(p.read_text())
         c = d["config"]
         cfg = InvestigationConfig(c["name"], c["region_id"], c["start_year"], c["end_year"], c.get("variable", "precipitation"),
-                                  tuple(c.get("season", (6, 7, 8, 9))))
+                                  tuple(c.get("season", SEASON_MONTHS)))
         return Investigation(d["id"], d["created_at"], cfg, d["prepared"], d.get("layers", {}), d.get("updated_at"))
 
     def list(self) -> list[dict]:
@@ -74,7 +70,7 @@ class MannKendallTrendAnalyzer:
         import pandas as pd
         s = pd.Series(series).sort_index()
         t = trend_summary(s)
-        pct = t["slope_pct_per_decade"] if abs(t["mean"]) > 1e-12 else None
+        pct = t["slope_pct_per_decade"] if abs(t["mean"]) > PCT_EPSILON else None
         return TrendStats(n=t["n"], start=int(t["start"]), end=int(t["end"]), mean=float(t["mean"]), sen_slope=float(t["sen_slope"]),
                           slope_ci_low=float(t["slope_ci_low"]), slope_ci_high=float(t["slope_ci_high"]), slope_pct_per_decade=pct,
                           mk_s=float(mk.original_test(s.values).s), mk_tau=float(t["mk_tau"]), mk_p=float(t["mk_p"]),
@@ -84,16 +80,12 @@ class MannKendallTrendAnalyzer:
 
 
 class DetrendedSpearmanAnalyzer:
-    @staticmethod
-    def _detrend(years: np.ndarray, values: np.ndarray) -> np.ndarray:
-        return values - np.polyval(np.polyfit(years, values, 1), years)
-
     def detrended(self, x: dict[int, float], y: dict[int, float]) -> Association:
-        years = np.array(sorted(set(x) & set(y)))
-        xv = self._detrend(years, np.array([x[k] for k in years], float))
-        yv = self._detrend(years, np.array([y[k] for k in years], float))
+        years = sorted(set(x) & set(y))
+        xv = helpers.linear_detrend(years, [x[k] for k in years])
+        yv = helpers.linear_detrend(years, [y[k] for k in years])
         r, p = stats.spearmanr(xv, yv)
-        return Association(float(r), float(p), len(years), int(years.min()), int(years.max()))
+        return Association(float(r), float(p), len(years), int(years[0]), int(years[-1]))
 
 
 class StaticInterventionCatalogue:

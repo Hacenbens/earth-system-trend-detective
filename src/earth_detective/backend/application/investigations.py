@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict
 
-from ..domain import rules
+from ..core.constants import FIRST_YEAR, LAST_YEAR, MIN_SEASONS, SEASON_MONTHS
 from ..domain.models import Investigation, InvestigationConfig
 from ..domain.ports import Clock, InvestigationRepository
 from ..domain.result import AppError, Err, Ok, Result
@@ -24,12 +24,12 @@ class CreateInvestigation:
         self._repo, self._regions, self._selector, self._clock = repo, regions, selector, clock
 
     def execute(self, cmd: CreateInvestigationCommand) -> Result[dict]:
-        if sorted(cmd.season) != [6, 7, 8, 9]:
+        if tuple(sorted(cmd.season)) != SEASON_MONTHS:
             return Err(AppError.validation("the MVP supports the June-September (JJAS) season only"))
-        if not (rules.FIRST_YEAR <= cmd.start_year <= cmd.end_year <= rules.LAST_YEAR):
-            return Err(AppError.validation(f"period must lie within {rules.FIRST_YEAR}-{rules.LAST_YEAR}"))
-        if cmd.end_year - cmd.start_year + 1 < rules.MIN_SEASONS:
-            return Err(AppError.validation(f"choose at least {rules.MIN_SEASONS} seasons: shorter series cannot support a trend test"))
+        if not (FIRST_YEAR <= cmd.start_year <= cmd.end_year <= LAST_YEAR):
+            return Err(AppError.validation(f"period must lie within {FIRST_YEAR}-{LAST_YEAR}"))
+        if cmd.end_year - cmd.start_year + 1 < MIN_SEASONS:
+            return Err(AppError.validation(f"choose at least {MIN_SEASONS} seasons: shorter series cannot support a trend test"))
         reg = self._regions.validate([cmd.region_id])
         if not reg.is_ok:
             return reg

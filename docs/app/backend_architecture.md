@@ -27,12 +27,36 @@ flowchart TB
 
 | Layer | Knows about | Never imports |
 |---|---|---|
-| `domain/` | nothing but the standard library | FastAPI, pydantic, SQLite, application, infrastructure |
-| `application/` | `domain` | FastAPI, pydantic, SQLite, infrastructure |
-| `infrastructure/` | `domain` (+ numpy/scipy/sqlite) | application, interfaces |
+| `core/` (shared kernel) | the standard library only | any other backend package, any framework |
+| `domain/` | `core` + the standard library | FastAPI, pydantic, SQLite, application, infrastructure |
+| `application/` | `core`, `domain` | FastAPI, pydantic, SQLite, infrastructure |
+| `infrastructure/` | `core`, `domain` (+ scipy/sqlite) | application, interfaces |
 | `interfaces/http/` | everything (it is the outermost ring) | — |
 
 Checked with a grep on every change (`docs/app/backend_architecture.md` §6).
+
+### The shared kernel: `core/`
+Everything that several layers need and that is not business logic lives in `src/earth_detective/backend/core/`:
+
+| Module | Content |
+|---|---|
+| `settings.py` | `Settings`, one immutable object read once from the environment (`get_settings()`); the **only** place that reads `os.environ` |
+| `constants.py` | fixed method and API values: `ALPHA`, `MIN_SEASONS`, `FIRST_YEAR`/`LAST_YEAR`, `SEASON_MONTHS`, `SENSITIVITY_SPAN`, `EXTREME_METRICS`, `API_PREFIX`, `REQUEST_ID_HEADER`, log-file limits, shared disclaimers |
+| `enums.py` | `ErrorKind`, `DatasetRole`, `DatasetKind`, `QualityFlag`, `Grain`, `TrendDirection`, `EvidenceCategory`, `EvidenceStatus`, `ExpectationStatus`, `Confidence`, `ScenarioKind`, `RainfallMetric`, `Layer`, `LogFormat` (all `StrEnum`: they serialise as plain strings) |
+| `helpers.py` | pure functions: `utc_now_iso`, `new_investigation_id`, `is_valid_investigation_id`, `new_request_id`, `json_safe`, `linear_detrend`, `mean`, `rms` |
+
+Settings (environment variables):
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `TREND_DETECTIVE_DB` | `data/warehouse/trend_detective.sqlite` | warehouse built by `make warehouse` |
+| `TREND_DETECTIVE_STORE` | `data/app/investigations` | investigation JSON documents |
+| `LOG_LEVEL` | `INFO` | DEBUG, INFO, WARNING, ERROR |
+| `LOG_FORMAT` | `json` | json or text |
+| `LOG_FILE` | none | optional rotating log file |
+| `CORS_ORIGINS` | `*` | comma-separated allowed origins (set the front-end URL in production) |
+
+Invalid values fail at start-up with a clear message. Constants are not settings: changing one changes the science or the API contract, so it goes through the decision log.
 
 ## 2. SOLID, concretely
 | Principle | Where |
@@ -80,5 +104,5 @@ Example (`LOG_FORMAT=text`):
 ## 6. Tests and checks
 - `make test`: 14 unit tests (domain rules, Result, every use case) on in-memory adapters.
 - End-to-end check (2026-11-15): every endpoint returned the same numbers as the previous implementation (e.g. Sahel +3.1 %/decade p = 0.161; east CHIRPS +7.9 % p = 0.026; east dry spell −9.6 % p = 0.001).
-- Dependency rule: `grep -rnE "from \.\.(application|infrastructure|interfaces)|import (fastapi|sqlite3|pydantic)" src/earth_detective/backend/domain` returns nothing (same for `application/` against infrastructure and frameworks).
+- Dependency rule (also: `core/` imports no other backend package and no framework; `os.environ` appears only in `core/settings.py`): `grep -rnE "from \.\.(application|infrastructure|interfaces)|import (fastapi|sqlite3|pydantic)" src/earth_detective/backend/domain` returns nothing (same for `application/` against infrastructure and frameworks).
 - Not yet: HTTP-level tests (need `httpx` for FastAPI's TestClient).

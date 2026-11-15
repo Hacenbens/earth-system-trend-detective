@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import logging
 import time
-import uuid
 
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from ...core.constants import REQUEST_ID_HEADER
+from ...core.helpers import new_request_id
 from ...domain.result import AppError
 from ...infrastructure.logging_config import request_id_var
 from .responses import error_response
@@ -18,7 +19,7 @@ log = logging.getLogger("earth_detective.backend.access")
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        rid = (request.headers.get("X-Request-ID") or uuid.uuid4().hex[:12])[:64]
+        rid = new_request_id(request.headers.get(REQUEST_ID_HEADER))
         token = request_id_var.set(rid)
         start = time.perf_counter()
         try:
@@ -29,7 +30,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                     "unhandled error", extra={"event": "http.unhandled", "path": request.url.path, "error_type": type(exc).__name__})
                 response = error_response(AppError.unexpected("internal error; see server logs with this request_id"))
             ms = round((time.perf_counter() - start) * 1000, 1)
-            response.headers["X-Request-ID"] = rid
+            response.headers[REQUEST_ID_HEADER] = rid
             log.info("request", extra={"event": "http.access", "method": request.method, "path": request.url.path,
                                        "query": str(request.url.query) or None, "status": response.status_code, "duration_ms": ms})
             return response

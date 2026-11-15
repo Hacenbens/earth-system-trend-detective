@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..core.constants import SEASON_MONTHS
+
 
 @dataclass(frozen=True)
 class Region:
@@ -138,7 +140,7 @@ class InvestigationConfig:
     start_year: int
     end_year: int
     variable: str = "precipitation"
-    season: tuple[int, ...] = (6, 7, 8, 9)
+    season: tuple[int, ...] = SEASON_MONTHS
 
 
 @dataclass
@@ -155,4 +157,4 @@ class Investigation:
         self.layers[layer] = result
 
     def record_assessment(self, mechanism_id: str, assessment: dict) -> None:
-        self.layers.setdefault("explain", {})[mechanism_id] = assessment
+        self.layers.setdefault("explain", {})[mechanism_id] = assessment  # key = core.enums.Layer.EXPLAIN

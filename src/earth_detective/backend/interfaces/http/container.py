@@ -2,14 +2,13 @@
 SQLite, an in-memory store for tests) without touching any use case."""
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from functools import lru_cache
-from pathlib import Path
 
 from ...application import catalogue as cat
 from ...application import investigations as invs
 from ...application import layers, report
+from ...core.settings import Settings, get_settings
 from ...application.services import InvestigationLoader, RegionValidator, SeriesSelector, TrendAssessor
 from ...domain.ports import (AssociationAnalyzer, BuildInfoReader, CaseStudyReader, CatalogueReader, Clock, DatasetReferenceReader,
                              InterventionCatalogue, InvestigationRepository, MechanismReader, ObservationReader,
@@ -19,9 +18,6 @@ from ...infrastructure.adapters import (DetrendedSpearmanAnalyzer, JsonInvestiga
 from ...infrastructure.sqlite_repositories import (SqliteBuildInfoRepository, SqliteCaseStudyRepository, SqliteCatalogueRepository,
                                                    SqliteDatasetReferenceRepository, SqliteMechanismRepository,
                                                    SqliteObservationRepository, SqlitePrecomputedTrendRepository, SqliteWarehouse)
-
-ROOT = Path(__file__).resolve().parents[5]
-
 
 @dataclass(frozen=True)
 class Adapters:
@@ -39,9 +35,9 @@ class Adapters:
     clock: Clock
 
 
-def production_adapters() -> Adapters:
-    db = SqliteWarehouse(Path(os.environ.get("TREND_DETECTIVE_DB", ROOT / "data" / "warehouse" / "trend_detective.sqlite")))
-    store_dir = Path(os.environ.get("TREND_DETECTIVE_STORE", ROOT / "data" / "app" / "investigations"))
+def production_adapters(settings: Settings) -> Adapters:
+    db = SqliteWarehouse(settings.warehouse_path)
+    store_dir = settings.investigations_dir
     return Adapters(SqliteCatalogueRepository(db), SqliteObservationRepository(db), SqlitePrecomputedTrendRepository(db),
                     SqliteMechanismRepository(db), SqliteCaseStudyRepository(db), SqliteBuildInfoRepository(db),
                     SqliteDatasetReferenceRepository(db), StaticInterventionCatalogue(), JsonInvestigationRepository(store_dir),
@@ -83,4 +79,4 @@ class Container:
 
 @lru_cache(maxsize=1)
 def get_container() -> Container:
-    return Container(production_adapters())
+    return Container(production_adapters(get_settings()))
