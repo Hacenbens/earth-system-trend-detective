@@ -51,7 +51,7 @@ erDiagram
 | `dim_dataset` | 7 | IMERG Final monthly/daily, IMERG Late, CHIRPS v3, MERRA-2 (2), EarthCARE | product, version, agency, kind, **role** (trend / check / supporting / near-real-time / case-study), coverage, access, DOI, `is_nasa` |
 | `dim_variable` | 29 | e.g. rain_total, CDD, TQV, shear_925_600 | label, unit, category, how a season is aggregated (sum / mean / index) |
 | `dim_method` | 5 | e.g. mann_kendall_sen, spearman_detrended | description + reference |
-| `dim_evidence` | 18 | E-001 … | claim and status, parsed from `docs/research/evidence_ledger.md` |
+| `dim_evidence` | 18 | E-001 … | all ledger columns (claim, datasets, period, statistics incl. robustness tests, publications, alternatives, limitations/confidence, status), parsed from `docs/research/evidence_ledger.md`; the build fails if a row does not have 9 columns |
 | `dim_mechanism` | 5 | M-01 … M-05 | name, description, confidence, interpretation (DRAFT) from `data/app/mechanisms.json` |
 
 ### Facts

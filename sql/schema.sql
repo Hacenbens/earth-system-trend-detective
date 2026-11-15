@@ -62,7 +62,13 @@ CREATE TABLE dim_evidence (
     evidence_key    INTEGER PRIMARY KEY,
     evidence_id     TEXT NOT NULL UNIQUE,     -- E-001 ... from docs/research/evidence_ledger.md
     claim           TEXT NOT NULL,
-    status          TEXT NOT NULL
+    status          TEXT NOT NULL,
+    datasets        TEXT,                     -- ledger columns, used by the AI narrative (get_evidence tool)
+    period_region   TEXT,
+    statistics      TEXT,                     -- statistical evidence, incl. robustness tests
+    publications    TEXT,
+    alternatives    TEXT,                     -- alternative explanations
+    limitations     TEXT                      -- limitations / confidence
 );
 
 CREATE TABLE dim_mechanism (

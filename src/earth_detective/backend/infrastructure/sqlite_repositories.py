@@ -145,6 +145,21 @@ class SqliteMechanismRepository:
         return {r["evidence_id"] for r in self._db.rows("SELECT evidence_id FROM dim_evidence")}
 
 
+class SqliteEvidenceRepository:
+    """Evidence ledger rows (claim, statistics incl. robustness tests, alternatives, limitations/confidence, status)."""
+    COLUMNS = "evidence_id, claim, status, datasets, period_region, statistics, alternatives, limitations"
+
+    def __init__(self, db: SqliteWarehouse):
+        self._db = db
+
+    def evidence(self, ids: list[str] | None) -> list[dict[str, Any]]:
+        if ids:
+            marks = ",".join("?" * len(ids))
+            return self._db.rows(f"SELECT {self.COLUMNS} FROM dim_evidence WHERE evidence_id IN ({marks}) ORDER BY evidence_id",
+                                 tuple(ids))
+        return self._db.rows(f"SELECT {self.COLUMNS} FROM dim_evidence ORDER BY evidence_id")
+
+
 class SqliteCaseStudyRepository:
     def __init__(self, db: SqliteWarehouse):
         self._db = db

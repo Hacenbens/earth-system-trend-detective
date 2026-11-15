@@ -87,11 +87,16 @@ VK = {v[1]: v[0] for v in dim_variable}; MK = {m[1]: m[0] for m in dim_method}
 ledger = (ROOT / "docs" / "research" / "evidence_ledger.md").read_text()
 inputs_used["docs/research/evidence_ledger.md"] = hashlib.sha256(ledger.encode()).hexdigest()
 dim_evidence = []
+clean = lambda s: re.sub(r"\*\*", "", s).strip()
 for line in ledger.splitlines():
-    m = re.match(r"^\|\s*(E-\d{3})\s*\|(.*)\|\s*([^|]*)\|\s*$", line)
-    if m:
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        dim_evidence.append((len(dim_evidence) + 1, cells[0], re.sub(r"\*\*", "", cells[1])[:600], cells[-1]))
+    if re.match(r"^\|\s*E-\d{3}\s*\|", line):
+        # columns: ID | Claim | Dataset | Period & region | Statistics | Publications | Alternatives | Limitations | Status
+        # split on " | " only: cells may contain |rho| without spaces
+        cells = [clean(c) for c in re.split(r"\s\|\s", line.strip().strip("|").strip())]
+        if len(cells) != 9:
+            raise SystemExit(f"evidence ledger row {cells[0]!r}: expected 9 columns, got {len(cells)}")
+        eid, claim, datasets, period, stat_text, pubs, alts, limits, status = cells
+        dim_evidence.append((len(dim_evidence) + 1, eid, claim[:600], status, datasets, period, stat_text, pubs, alts, limits))
 EK = {e[1]: e[0] for e in dim_evidence}
 
 mech = json.loads((ROOT / "data" / "app" / "mechanisms.json").read_text())

@@ -17,6 +17,15 @@ class FakeTrends:
                  "dataset": "imerg_final_monthly", "significant": 0}]
 
 
+class FakeEvidence:
+    ROWS = {"E-007": {"evidence_id": "E-007", "claim": "Dry spells shorten in the east", "status": "VERIFIED (two products)",
+                      "statistics": "dry-spell shortening holds in every test: leave-one-year-out (p <= 0.004)",
+                      "alternatives": "provisional borders", "limitations": "Dry spells (east): medium-high"}}
+
+    def evidence(self, ids):
+        return [self.ROWS[i] for i in (ids or self.ROWS) if i in self.ROWS]
+
+
 class ScriptedModel:
     """Returns the scripted messages in order; the final one may use numbers read from the tool results."""
     model_name = "fake-llm"
@@ -28,15 +37,16 @@ class ScriptedModel:
         self.calls += 1
         self.seen_tools = [t["function"]["name"] for t in tools]
         if self._tools:
-            name = self._tools.pop(0)
+            item = self._tools.pop(0)
+            name, args = item if isinstance(item, tuple) else (item, "{}")
             return {"content": None, "tool_calls": [{"id": f"c{self.calls}", "type": "function",
-                                                     "function": {"name": name, "arguments": "{}"}}]}
+                                                     "function": {"name": name, "arguments": args}}]}
         tool_msgs = [json.loads(m["content"]) for m in messages if m["role"] == "tool"]
         return {"content": self._final(tool_msgs), "tool_calls": None}
 
 
 def container_with(model, cap=200):
-    a = dataclasses.replace(adapters(), llm=model, trends=FakeTrends())
+    a = dataclasses.replace(adapters(), llm=model, trends=FakeTrends(), evidence=FakeEvidence())
     c = Container(a, llm_daily_cap=cap)
     inv = c.create_investigation.execute(CreateInvestigationCommand("t", "sahel", 1998, 2025)).value["id"]
     return c, inv
@@ -101,6 +111,29 @@ class ToolAndVerificationTests(unittest.TestCase):
         self.assertIn("unknown tool", t.call("drop_table", "{}"))
         self.assertIn("bad arguments", t.call("query_warehouse_trends", "not json"))
         self.assertIn('"pct_per_decade": 3.09', t.call("query_warehouse_trends", '{"region": "east"}'))  # 3 significant figures
+
+    def test_evidence_tool(self):
+        t = NarrativeTools({"config": {}, "layers": {}}, FakeTrends(), None, None, FakeEvidence())
+        row = json.loads(t.call("get_evidence", '{"ids": ["E-007"]}'))[0]
+        self.assertIn("leave-one-year-out", row["statistics_and_robustness"])
+        self.assertEqual(row["limitations_and_confidence"], "Dry spells (east): medium-high")
+        index = json.loads(t.call("get_evidence", "{}"))
+        self.assertEqual(set(index[0]), {"evidence_id", "claim", "status"})
+        self.assertEqual(json.loads(t.call("get_evidence", '{"ids": ["x; DROP TABLE"]}'))[0]["evidence_id"], "E-007")  # bad id ignored
+        self.assertIn("not available", t.call("get_evidence", "{}") if False else
+                      NarrativeTools({"config": {}, "layers": {}}, None, None, None).call("get_evidence", "{}"))
+
+    def test_model_can_cite_the_ledger(self):
+        def final(tool_msgs):
+            ev = tool_msgs[1][0]
+            return f"Dry spells: {ev['limitations_and_confidence']} confidence, robust (p <= 0.004) [E-007]."
+        model = ScriptedModel(final, tool_names=("get_trend_results", ("get_evidence", '{"ids": ["E-007"]}')))
+        c, inv = container_with(model)
+        c.detect.execute(DetectCommand(inv, metrics=("rain_total",)))
+        r = c.narrative.execute(NarrativeCommand(inv)).value
+        self.assertEqual(r["tools_used"], ["get_trend_results", "get_evidence"])
+        self.assertTrue(r["verified"], r["unverified_numbers"])
+        self.assertIn("get_evidence", model.seen_tools)
 
     def test_verification_rules(self):
         src = [3.0899, 0.1607, -9.5737]

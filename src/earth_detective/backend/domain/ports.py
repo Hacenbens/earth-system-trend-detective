@@ -45,6 +45,11 @@ class DatasetReferenceReader(Protocol):
     def references(self) -> list[dict[str, Any]]: ...
 
 
+class EvidenceLedgerReader(Protocol):
+    """Rows of the scientific evidence ledger (docs/research/evidence_ledger.md, loaded into dim_evidence)."""
+    def evidence(self, ids: list[str] | None) -> list[dict[str, Any]]: ...
+
+
 class InterventionCatalogue(Protocol):
     def all(self) -> list[Intervention]: ...
 

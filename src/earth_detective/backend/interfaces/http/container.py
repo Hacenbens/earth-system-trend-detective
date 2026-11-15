@@ -10,14 +10,15 @@ from ...application import investigations as invs
 from ...application import layers, narrative, report
 from ...core.settings import Settings, get_settings
 from ...application.services import InvestigationLoader, RegionValidator, SeriesSelector, TrendAssessor
-from ...domain.ports import (AssociationAnalyzer, BuildInfoReader, CaseStudyReader, CatalogueReader, ChatModel, Clock, DatasetReferenceReader,
+from ...domain.ports import (AssociationAnalyzer, BuildInfoReader, CaseStudyReader, CatalogueReader, ChatModel, Clock,
+                             EvidenceLedgerReader, DatasetReferenceReader,
                              InterventionCatalogue, InvestigationHousekeeping, InvestigationRepository, MechanismReader, ObservationReader,
                              PrecomputedTrendReader, TrendAnalyzer)
 from ...infrastructure.adapters import (DetrendedSpearmanAnalyzer, JsonInvestigationRepository, MannKendallTrendAnalyzer,
                                         StaticInterventionCatalogue, SystemClock)
 from ...infrastructure.llm_client import OpenAICompatibleChatModel
 from ...infrastructure.sqlite_repositories import (SqliteBuildInfoRepository, SqliteCaseStudyRepository, SqliteCatalogueRepository,
-                                                   SqliteDatasetReferenceRepository, SqliteMechanismRepository,
+                                                   SqliteDatasetReferenceRepository, SqliteEvidenceRepository, SqliteMechanismRepository,
                                                    SqliteObservationRepository, SqlitePrecomputedTrendRepository, SqliteWarehouse)
 
 @dataclass(frozen=True)
@@ -36,6 +37,7 @@ class Adapters:
     clock: Clock
     housekeeping: InvestigationHousekeeping | None = None
     llm: ChatModel | None = None
+    evidence: EvidenceLedgerReader | None = None
 
 
 def production_adapters(settings: Settings) -> Adapters:
@@ -46,7 +48,8 @@ def production_adapters(settings: Settings) -> Adapters:
                     SqliteDatasetReferenceRepository(db), StaticInterventionCatalogue(), store,
                     MannKendallTrendAnalyzer(), DetrendedSpearmanAnalyzer(), SystemClock(), housekeeping=store,
                     llm=OpenAICompatibleChatModel(settings.llm_base_url, settings.llm_api_key, settings.llm_model)
-                    if settings.llm_api_key else None)
+                    if settings.llm_api_key else None,
+                    evidence=SqliteEvidenceRepository(db))
 
 
 class Container:
@@ -82,7 +85,7 @@ class Container:
         self.report = report.BuildReport(loader, a.references, a.build)
         self.report_csv = report.ExportReportCsv(loader)
         # AI narrative over the warehouse (read-only tools, numbers verified)
-        self.narrative = narrative.GenerateNarrative(loader, a.trends, a.mechanisms, a.catalogue, a.llm,
+        self.narrative = narrative.GenerateNarrative(loader, a.trends, a.mechanisms, a.catalogue, a.llm, a.evidence,
                                                      narrative.DailyCounter(llm_daily_cap), a.clock)
 
 
