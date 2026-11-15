@@ -5,6 +5,7 @@ import { useApp } from '@/app/layout/AppProvider';
 import { Navbar } from '@/app/layout/Navbar';
 import { Footer } from '@/app/layout/Footer';
 import { HeroSection } from '@/app/pages/landing/HeroSection';
+import { DemoVideoSection } from '@/app/pages/landing/DemoVideoSection';
 import { ProblemSection } from '@/app/pages/landing/ProblemSection';
 import { WorkflowSection } from '@/app/pages/landing/WorkflowSection';
 import { SahelCaseStudy } from '@/app/pages/landing/SahelCaseStudy';
@@ -38,6 +39,8 @@ export function LandingPage() {
             navigateTo('/investigations/sahel-rainfall-2001-2025/data');
           }}
         />
+
+        <DemoVideoSection />
 
         <ProblemSection />
 
