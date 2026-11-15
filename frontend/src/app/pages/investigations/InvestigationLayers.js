@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { AlertTriangle, ArrowRight, CheckCircle2, Info } from 'lucide-react';
+import { pText, scaler, senEnds, signed, useLiveDetect, useLiveInvestigate, zScores } from '@/lib/liveLayers';
 
 /* ============================================================================
  * PAGE 10: LAYER 01 — DETECT / TREND EXPLORER
@@ -12,6 +13,9 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
   const [seasonMode, setSeasonMode] = useState(investigation.season);
   const [viewAnomaly, setViewAnomaly] = useState(false);
   const [showExtremes, setShowExtremes] = useState(investigation.extremesEnabled ?? true);
+  // Live results from the backend API (src/lib/liveLayers.js); placeholders below are kept when unavailable.
+  const live = useLiveDetect(investigation);
+  const liveMain = live.status === 'ready' ? live.main : null;
 
   const years = useMemo(() => {
     const start = investigation.startYear ?? 2001;
@@ -30,7 +34,24 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
     });
   }, [years]);
 
+  const livePlot = useMemo(() => {
+    if (!liveMain) return null;
+    const pts = (liveMain.series || [])
+      .filter((p) => p.value != null)
+      .map((p) => ({ x: Number(p.date), y: viewAnomaly ? p.anomaly : p.value }));
+    if (pts.length < 2) return null;
+    const { toX, toY } = scaler(pts, { x0: 36, x1: 596, y0: 18, y1: 170 });
+    const path = pts.map((p, i) => `${i ? 'L' : 'M'} ${toX(p.x).toFixed(1)} ${toY(p.y).toFixed(1)}`).join(' ');
+    const sen = senEnds(pts, liveMain.sen_slope);
+    return {
+      path,
+      sen: sen && { x1: toX(sen[0].x), y1: toY(sen[0].y), x2: toX(sen[1].x), y2: toY(sen[1].y) },
+      years: pts.map((p) => p.x),
+    };
+  }, [liveMain, viewAnomaly]);
+
   const svgPath = useMemo(() => {
+    if (livePlot) return livePlot.path;
     if (points.length === 0) return '';
     return points
       .map((p, idx) => {
@@ -40,7 +61,8 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
         return `${idx === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${Math.max(18, Math.min(170, y)).toFixed(1)}`;
       })
       .join(' ');
-  }, [points, viewAnomaly]);
+  }, [points, viewAnomaly, livePlot]);
+  const axisYears = livePlot?.years ?? years;
 
   return (
     <div className="space-y-6">
@@ -57,7 +79,11 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#131D38] text-[#ffc20d] font-mono text-[10px] uppercase">
             <Info className="w-3.5 h-3.5" />
-            Illustrative preview · verify dataset before citing
+            {liveMain
+              ? `Live · ${liveMain.provenance?.dataset ?? 'NASA data'} via backend API`
+              : live.status === 'loading'
+                ? 'Loading NASA results…'
+                : 'Illustrative preview · verify dataset before citing'}
           </span>
         </div>
 
@@ -132,7 +158,8 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
                   : `${seasonMode} precipitation series`}
               </h3>
               <p className="text-[13px] text-[#5B6478]">
-                {investigation.period} · {slopeMethod} baseline overlay (illustrative preview)
+                {investigation.period} · {slopeMethod} baseline overlay{' '}
+                {liveMain ? `(${liveMain.provenance?.dataset ?? 'live'}, n = ${liveMain.n})` : '(illustrative preview)'}
               </p>
             </div>
             <div className="inline-flex rounded-full bg-[#f4f1ea] border border-[#E6E0D2] p-1">
@@ -192,12 +219,12 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
                 strokeDasharray="3 3"
               />
 
-              {/* Linear Sen slope placeholder line */}
+              {/* Linear Sen slope placeholder line (live Sen fit when available) */}
               <line
-                x1="36"
-                y1={viewAnomaly ? 112 : 128}
-                x2="596"
-                y2={viewAnomaly ? 74 : 78}
+                x1={livePlot?.sen?.x1 ?? 36}
+                y1={livePlot?.sen?.y1 ?? (viewAnomaly ? 112 : 128)}
+                x2={livePlot?.sen?.x2 ?? 596}
+                y2={livePlot?.sen?.y2 ?? (viewAnomaly ? 74 : 78)}
                 stroke="#ffc20d"
                 strokeWidth="2"
                 strokeDasharray="6 4"
@@ -218,7 +245,7 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
                 fontSize="10"
                 fontFamily="JetBrains Mono, monospace"
               >
-                {years[0]}
+                {axisYears[0]}
               </text>
               <text
                 x="305"
@@ -227,7 +254,7 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
                 fontSize="10"
                 fontFamily="JetBrains Mono, monospace"
               >
-                {years[Math.floor(years.length / 2)]}
+                {axisYears[Math.floor(axisYears.length / 2)]}
               </text>
               <text
                 x="570"
@@ -236,17 +263,18 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
                 fontSize="10"
                 fontFamily="JetBrains Mono, monospace"
               >
-                {years[years.length - 1]}
+                {axisYears[axisYears.length - 1]}
               </text>
             </svg>
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] text-[#A9B1C6]">
               <span className="inline-flex items-center gap-2">
                 <span className="w-3 h-0.5 bg-[#4FB3A9]" /> Annual {seasonMode} series
-                (illustrative)
+                {liveMain ? '' : ' (illustrative)'}
               </span>
               <span className="inline-flex items-center gap-2 text-[#ffc20d]">
-                <span className="w-3 h-0.5 bg-[#ffc20d]" /> {slopeMethod} fit (placeholder)
+                <span className="w-3 h-0.5 bg-[#ffc20d]" /> {liveMain ? "Sen's slope" : slopeMethod} fit
+                {liveMain ? '' : ' (placeholder)'}
               </span>
             </div>
           </div>
@@ -256,21 +284,31 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
         <section className="xl:col-span-4 rounded-[28px] bg-[#FBFAF6] border border-[#E6E0D2] p-6 shadow-[0_20px_50px_rgba(19,29,56,0.06)] flex flex-col justify-between">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#5B6478]">
-              TREND DIAGNOSTICS (PLACEHOLDER)
+              {liveMain ? 'TREND DIAGNOSTICS' : 'TREND DIAGNOSTICS (PLACEHOLDER)'}
             </p>
             <h3 className="mt-1 font-display text-[18px] font-semibold text-[#131D38]">
               {trendMethod} & {slopeMethod}
             </h3>
 
             <dl className="mt-4 grid grid-cols-2 gap-3 text-[13px]">
-              {[
-                { k: 'Direction', v: 'Upward (tentative)' },
-                { k: "Sen's slope", v: '— mm/yr (pending)' },
-                { k: 'p-value', v: '— (to compute)' },
-                { k: '95% CI', v: '[—, —]' },
-                { k: 'Sample count', v: `n = ${years.length} yrs` },
-                { k: 'Autocorrelation', v: 'Pre-whitened check' },
-              ].map((stat) => (
+              {(liveMain
+                ? [
+                    { k: 'Direction', v: liveMain.wording },
+                    { k: "Sen's slope", v: `${signed(liveMain.sen_slope, 2)} ${liveMain.slope_unit} (${signed(liveMain.pct_per_decade)}%/dec)` },
+                    { k: 'p-value', v: `${pText(liveMain.p_value)}${liveMain.significant ? ' (α 0.05)' : ' (n.s.)'}` },
+                    { k: '95% CI', v: liveMain.slope_ci95 ? `[${signed(liveMain.slope_ci95[0], 2)}, ${signed(liveMain.slope_ci95[1], 2)}]` : '[—, —]' },
+                    { k: 'Sample count', v: `n = ${liveMain.n} yrs` },
+                    { k: 'Autocorrelation', v: `lag-1 ${signed(liveMain.autocorrelation?.lag1, 2)} · Yue–Wang p ${pText(liveMain.autocorrelation?.mk_yue_wang_p)}` },
+                  ]
+                : [
+                    { k: 'Direction', v: 'Upward (tentative)' },
+                    { k: "Sen's slope", v: '— mm/yr (pending)' },
+                    { k: 'p-value', v: '— (to compute)' },
+                    { k: '95% CI', v: '[—, —]' },
+                    { k: 'Sample count', v: `n = ${years.length} yrs` },
+                    { k: 'Autocorrelation', v: 'Pre-whitened check' },
+                  ]
+              ).map((stat) => (
                 <div
                   key={stat.k}
                   className="p-3 rounded-[16px] bg-[#f4f1ea] border border-[#E6E0D2]"
@@ -285,8 +323,13 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
           </div>
 
           <p className="mt-4 text-[12px] text-[#5B6478] leading-[1.5]">
-            Statistical significance is kept intentionally blank until verified GPM IMERG V07B
-            netCDF computations run against the archive.
+            {liveMain
+              ? `Mann–Kendall + Sen on ${liveMain.provenance?.dataset} ${liveMain.provenance?.version}. Independent check (${liveMain.independent_check?.dataset ?? '—'}): ${signed(liveMain.independent_check?.pct_per_decade)}%/dec, p ${pText(liveMain.independent_check?.p_value)}. Evidence ${(liveMain.evidence_ids || []).join(', ')}.`
+              : live.status === 'error'
+                ? `Backend unavailable (${live.error?.message ?? 'error'}). Showing the placeholder.`
+                : live.status === 'unavailable'
+                  ? live.reason
+                  : 'Statistical significance is kept intentionally blank until verified GPM IMERG V07B netCDF computations run against the archive.'}
           </p>
         </section>
       </div>
@@ -333,7 +376,11 @@ export function DetectLayerPage({ investigation, onUpdateInvestigation, onNextLa
                       {idx.code}
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-white border border-[#E6E0D2] font-mono text-[10px] text-[#5B6478]">
-                      Placeholder
+                      {live.byMetric?.[idx.code]
+                        ? `${signed(live.byMetric[idx.code].pct_per_decade)}%/dec · p ${pText(live.byMetric[idx.code].p_value)}`
+                        : live.skipped?.some((s) => s.metric === idx.code)
+                          ? 'Sahel box only'
+                          : 'Placeholder'}
                     </span>
                   </div>
                   <div className="mt-1 text-[14px] font-semibold text-[#131D38]">{idx.name}</div>
@@ -494,14 +541,59 @@ const INVESTIGATE_VARS = [
   },
 ];
 
+// ---- live feed (backend API, MERRA-2 detrended Spearman) mapped onto the INVESTIGATE_VARS shape above
+const LIVE_CATEGORY = {
+  TQV: 'Moisture', QV2M: 'Moisture', mfc_mm_day: 'Moisture', UFLXQV: 'Moisture', VFLXQV: 'Moisture',
+  U850: 'Circulation', V850: 'Circulation', OMEGA500: 'Circulation', shear_925_600: 'Circulation', AEJ_U600: 'Circulation',
+  DUEXTTAU: 'Aerosols', TOTEXTTAU: 'Aerosols',
+  GWETTOP: 'Surface', GWETROOT: 'Surface', EF: 'Surface', LHLAND: 'Surface', SHLAND: 'Surface', T2M_C: 'Surface',
+};
+const LIVE_SUMMARY_FROM = { TQV: 'tqv', U850: 'u850', OMEGA500: 'omega500' }; // reuse the team's wording where it matches
+const LIVE_STATUS = { supporting: 'Supports', contrasting: 'Contrasts', unclear: 'Unclear' };
+const toChartScale = (pts) => zScores(pts).map((p) => Math.max(4, Math.min(96, 50 + p.y * 15)));
+
+function liveInvestigateVars(live) {
+  const vars = live.comparisons.map((c) => {
+    const reuse = INVESTIGATE_VARS.find((v) => v.id === LIVE_SUMMARY_FROM[c.variable]);
+    const pts = (c.records || []).filter((r) => r.value != null).map((r) => ({ x: r.year, y: r.value }));
+    return {
+      id: c.variable,
+      category: LIVE_CATEGORY[c.variable] ?? 'Other',
+      name: `${c.label} (${c.variable})`,
+      dataset: c.dataset?.startsWith('merra2') ? 'MERRA-2' : c.dataset,
+      corr: `${signed(c.statistic, 2)} (p ${pText(c.p_value)})`,
+      status: LIVE_STATUS[c.status] ?? 'Unclear',
+      summary:
+        reuse?.summary ??
+        `Mechanism ${c.mechanism_id}: expected ${c.expected_sign > 0 ? 'positive' : 'negative'} association with seasonal rainfall. Own trend ${signed(c.variable_trend?.per_decade, 2)} ${c.unit}/decade.`,
+      points: toChartScale(pts),
+    };
+  });
+  const earthcare = INVESTIGATE_VARS.find((v) => v.id === 'earthcare');
+  if (live.caseStudies.length && earthcare) {
+    vars.push({ ...earthcare, corr: `${live.caseStudies.length} overpass case studies` });
+  }
+  return vars;
+}
+
 export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onNextLayer }) {
+  const liveEv = useLiveInvestigate(investigation);
+  const isLive = liveEv.status === 'ready' && liveEv.comparisons.length > 0;
+  const vars = useMemo(() => (isLive ? liveInvestigateVars(liveEv) : INVESTIGATE_VARS), [isLive, liveEv]);
   const [selectedVarId, setSelectedVarId] = useState(INVESTIGATE_VARS[0].id);
   const [lagMonths, setLagMonths] = useState(0);
-  const activeVar = INVESTIGATE_VARS.find((v) => v.id === selectedVarId) ?? INVESTIGATE_VARS[0];
+  const activeVar = vars.find((v) => v.id === selectedVarId) ?? vars[0];
 
+  const step = 504 / Math.max(1, activeVar.points.length - 1);
   const path = activeVar.points
-    .map((v, i) => `${i === 0 ? 'M' : 'L'} ${30 + i * 72} ${135 - v * 1.4}`)
+    .map((v, i) => `${i === 0 ? 'M' : 'L'} ${30 + i * step} ${135 - v * 1.4}`)
     .join(' ');
+  const baselinePoints = isLive && liveEv.rainfall?.length > 1 ? toChartScale(liveEv.rainfall) : null;
+  const baselinePath = baselinePoints
+    ? baselinePoints
+        .map((v, i) => `${i === 0 ? 'M' : 'L'} ${30 + i * (504 / (baselinePoints.length - 1))} ${135 - v * 1.4}`)
+        .join(' ')
+    : 'M 30 98 L 102 92 L 174 96 L 246 82 L 318 76 L 390 68 L 462 60 L 534 52';
 
   return (
     <div className="space-y-6">
@@ -537,7 +629,7 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
 
         {/* Variable pills */}
         <div className="mt-4 flex flex-wrap gap-2">
-          {INVESTIGATE_VARS.map((v) => (
+          {vars.map((v) => (
             <button
               key={v.id}
               type="button"
@@ -560,7 +652,13 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
               <span>
                 {activeVar.dataset} · LAG {lagMonths} MONTH(S)
               </span>
-              <span className="text-[#ffc20d]">CO-VARIATION PREVIEW</span>
+              <span className="text-[#ffc20d]">
+                {isLive
+                  ? lagMonths
+                    ? 'LAGGED TESTS NOT AVAILABLE · SHOWING LAG 0'
+                    : 'STANDARDIZED · ρ AFTER DETRENDING'
+                  : 'CO-VARIATION PREVIEW'}
+              </span>
             </div>
             <svg
               viewBox="0 0 560 150"
@@ -578,7 +676,7 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
                 strokeDasharray="3 3"
               />
               <path
-                d="M 30 98 L 102 92 L 174 96 L 246 82 L 318 76 L 390 68 L 462 60 L 534 52"
+                d={baselinePath}
                 fill="none"
                 stroke="#4FB3A9"
                 strokeWidth="2.2"
@@ -642,7 +740,7 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E6E0D2]">
-              {INVESTIGATE_VARS.map((v) => (
+              {vars.map((v) => (
                 <tr
                   key={v.id}
                   onClick={() => setSelectedVarId(v.id)}
@@ -670,8 +768,11 @@ export function InvestigateLayerPage({ investigation, onUpdateInvestigation, onN
 
         <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-[#E6E0D2]">
           <p className="text-[12px] text-[#5B6478]">
-            Limitation: Reanalysis spatial smoothing (0.5°) and MODIS cloud occlusion limit
-            single-variable causal attribution.
+            {isLive
+              ? `${liveEv.notes.join(' ')} Reanalysis spatial smoothing (0.5°) limits single-variable attribution.`
+              : liveEv.status === 'error'
+                ? `Backend unavailable (${liveEv.error?.message ?? 'error'}). Showing the illustrative table.`
+                : 'Limitation: Reanalysis spatial smoothing (0.5°) and MODIS cloud occlusion limit single-variable causal attribution.'}
           </p>
           <button
             type="button"
